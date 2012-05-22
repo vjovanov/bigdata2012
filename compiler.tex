@@ -1,0 +1,433 @@
+\section{Common Compiler Infrastructure}
+\label{compiler}
+
+%HIGHLIGHT: remove phase ordering problem by expressing many optimizations uniformly as rewriting 
+%and integrating them into a single forward phase (see combining analyses).
+%HIGHLIGHT: multi-level IR combines both coarse and fine-grained optimizations (see telescoping languages)
+%HIGHLIGHT: novel loop fusion algorithm including asymmetric nested loops
+%HIGHLIGHT: extend in a natural way by overriding smart constructors
+
+Several requirements have led to design choices that make the Delite compiler
+architecture quite different from many traditional compilers. These include the
+need to support a very large number of IR node types for domain operations,
+specify optimizations in a modular way, and generate code for a variety of
+different targets.  
+%% Many internal representations are based on control-flow
+%% graphs (CFG). Since one of our main goals is parallelization, a sequential CFG
+%% is not a good fit.
+%% Usually it is difficult to extend compilers beyond adding isolated phases but we
+%% rely on a tight integration.
+%% Expressing optimizations and analyses as isolated is a big problem for extensibility
+%% because phase ordering problem are very hard to avoid.
+Delite does not need to worry about very low-level backend code generation as
+most targets accept C-like source code as input (CUDA, OpenCL). Delite uniformly
+produces source-level output, including Scala, to run on the JVM. This means that
+we can rely on the backend compiler to perform standard low-level optimizations.
+
+%In particular we plan to highlight and describe our loop fusion approach (including fusion over nested loops, i.e. flatMap and groupBy), handling of effects and mutation, combining analyses and transformations via (context-sensitive and speculative) rewriting, and applying compiler optimizations on the level of coarse-grained DSL expressions (new: liveness to remove copies for mutable <-> immutable conversion). 
+
+
+\subsection{IR Representation}
+
+We have seen earlier how DSLs consist of separate interface and implementation
+components (Scala traits) and how the interface trait defines DSL operations in
+terms of an abstract type constructor \code{Rep[T]}.  The implementation trait
+extends the core Delite compiler components with domain specific
+extensions. Within the implementation hierarchy, the type constructor \code{Rep}
+is no longer abstract but defined as \code{Exp}, an algebraic datatype of atomic
+expressions, i.e.\ symbols and constants. The core IR types are as follows:
+\begin{listing}
+type Rep[T] = Exp[T]
+abstract class Exp[T]    // atomic: Sym, Const
+abstract class Def[T]    // composite IR nodes
+abstract class Block[T]  // block expressions
+\end{listing}
+
+DSL operations are implemented by providing a concrete
+method that implements an abstract one in the corresponding interface
+trait. The most common case is to create a composite IR node (subclass of \code{Def}):
+\begin{listing}
+case class Foo(x: Exp[String]) extends Def[Int]
+def foo(x: Exp[String]): Exp[Int] = Foo(x)
+\end{listing}
+The return type of \code{foo} is \code{Exp[Int]}, not \code{Def[Int]}. Delite provides
+an implicit conversion
+\begin{listing}
+implicit def toAtom[T](x: Def[T]): Exp[T]
+\end{listing}
+that will associate the argument with a fresh symbol in a global symbol
+table and return the symbol as the result 
+(i.e.\ each intermediate result is named). 
+This way only the atomic symbol is passed to other operations; 
+references and sharing are explicit.                          
+Method \code{foo} can also act as a ``smart'' constructor
+and perform symbolic computation over its arguments (see below).
+
+
+The Delite IR is a ``sea of nodes'' graph of \code{Def}
+instances linked by references via symbols. IR nodes are block
+structured and control-flow information is implicit:
+\begin{listing}
+case class IfThenElse[T](c:Exp[Boolean],a:Block[T],b:Block[T]) 
+  extends Def[T]
+def ifThenElse[T](c:Exp[Boolean],a:=>Exp[T],b:=>Exp[T]):Exp[T]
+  = IfThenElse[T](c,reifyEffects(a),reifyEffects(b)) 
+\end{listing}
+This representation is more appropriate for parallel execution than the
+traditional sequential control-flow graph. Pure computation can float freely in
+the graph and can be scheduled for execution anywhere.
+Many common optimizations can be implemented in a uniform way for all
+DSLs (common subexpression, dead code elimination, code motion).
+
+Specific optimizations can be implemented as rewrite rules
+using pattern matching on IR nodes and we can layer these
+rewritings in a modular way by putting them in separate
+traits. We can create a smart constructor for the \code{Foo}
+operation (see above) by overriding method \code{foo:}
+\begin{listing}
+override def foo(x: Exp[String]): Exp[Int] = x match {
+  case Def(Bar(y,z)) => baz(z)
+  case _ => super.foo(x)
+}
+\end{listing}
+Here, \code{Def(_)} looks up a definition from the global symbol 
+table. If the result does not match \code{Bar}, the next rewrite 
+is tried via \code{super}, up
+to the default behavior that creates a \code{Foo}
+node.
+Rewriting can also be context sensitive \cite{bravenboer05scopedtransformation}.
+We implement copy propagation by rewriting
+local variables according to the last assignment. % (middle):
+%\begin{listing}
+%var x = 7     var x = 7    println(5)
+%x = 5         x = 5
+%println(x)    println(5)
+%\end{listing}
+Dead stores are DCE'd later. % (right).
+
+
+
+%% \subsection{Generic Optimizations}
+
+%% Many common optimizations can be implemented in a uniform way for all
+%% DSLs. Common subexpression elimination (CSE) / global value numbering (GVN) for
+%% pure nodes is handled by \code{toAtom}: whenever the \code{Def} in question has
+%% been encountered before, its existing symbol is returned instead of a new
+%% one. Since the operation is pure, we do not need to check via data flow analysis
+%% whether its result is available on the current path. Instead we just insert a
+%% dependency and let the later code motion pass schedule the operation in a
+%% correct order. Thus, we achieve a similar effect as partial redundancy
+%% elimination (PRE) but in a simpler way. For some effectful operations there is a
+%% more restricted, local form of CSE based on context sensitive rewriting (see
+%% below).
+
+%% Global code motion is another uniform optimization. Based on frequency
+%% information for block expression it will hoist computation out of loops and push
+%% computation into conditional branches. Dead code elimination is trivially
+%% included.  Both optimizations are coarse grained and work on the level of domain
+%% operations. For example, Delite will happily hoist whole data parallel loops out
+%% of other loops.
+
+
+%% \subsection{Extensibility and Specific Optimizations}
+
+%% Another class of optimizations is specific to individual
+%% domain operations. We can use pattern matching on IR nodes
+%% to express rewriting rules. Moreover we can layer these
+%% rewritings in a modular way by putting them inside separate
+%% traits. We can create a smart constructor for the \code{Foo}
+%% operation (see above) by creating a new trait that overrides
+%% method \code{foo:}
+%% \begin{listing}
+%% override def foo(x: Exp[String]): Exp[Int] = x match {
+%%   case Def(Bar(y,z)) => baz(z)
+%%   case _ => super.foo(x)
+%% }
+%% \end{listing}
+%% Here, \code{Def} is an extractor object that will lookup the
+%% definition of \code{x} from the global symbol table. If
+%% the definition matches \code{Bar} then operation \code{baz}
+%% is invoked, possibly triggering further rewrites. If there
+%% is no match, the next rewrite is tried via \code{super}, up
+%% to the default behavior that creates a \code{Foo}
+%% node. In essence we have solved the ``expressions problem''
+%% of independently adding IR node types and operations on
+%% them via an encoding into mixin-composition and pattern
+%% matching.
+
+%% Rewriting can also be context sensitive \cite{eelcoVisser}.
+%% Reads of
+%% local variables for example examine the current
+%% context to find the last assignment, implementing
+%% a form of copy propagation (middle):
+%% \begin{listing}
+%% var x = 7     var x = 7    println(5)
+%% x = 5         x = 5
+%% println(x)    println(5)
+%% \end{listing}
+%% This renders the stores dead, and they will be removed
+%% by dead code elimination later (right).
+
+
+
+%\subsection{Multi-Level IR}
+
+IR nodes can be viewed in multiple ways at the same time:
+\begin{listing}
+case class Foo(x: Exp[String]) extends DeliteOpSequential {
+  def block = { /* implementation code */ } }
+\end{listing}
+Such a node is both a single \code{Foo(a)} node and a compound expression
+consisting of multiple statements at the same time. Rewriting can pattern match
+on it using \code{Def(Foo(a))}, common subexpression elimination will remove one
+of two \code{Foo} nodes with identical arguments \code{arg} and code motion will
+try to hoist complete \code{Foo} operations out of loops.  At the same time, all
+optimization will also be applied to the contents of the node. Common
+subexpression elimination will work across the bodies of several \code{Foo}
+blocks. Optimizations can work on all granularities at the same time (this is
+the core idea of telescoping languages \cite{kennedy05telescoping}).
+
+In the same way, vector addition can be both a \code{VecPlus} node and a data
+parallel loop at the same time (see Section~\ref{parallelism} for
+details). Compound nodes can internally use effects but be pure externally (see
+below).
+
+
+
+\subsection{Combining Analyses and Transformations}
+
+Many optimizations are mutually beneficial.  In the presence of loops,
+optimizations need to make optimistic assumptions for the supporting analysis
+to obtain best results.  If multiple analyses are run separately, each of them
+effectively makes pessimistic assumptions about the outcome of all others.
+Combined analyses avoid the phase ordering problem by solving everything at the
+same time. Lerner, Grove, and Chambers showed a method of composing
+optimizations by interleaving analyses and transformations
+\cite{lerner02composingdataflow}.  We use a modified version of their algorithm that
+works on structured loops instead of CFGs. The idea is that rewriting is
+usually semantics preserving, i.e.\ pessimistic.  The corollary is that we need
+to rewrite speculatively and be able to rollback to a previous state to get
+optimistic optimization. The algorithm proceeds as follows: for each
+encountered loop, apply all possible transforms to the loop body, given empty
+initial assumptions.  Analyze the result of the transformation: if any new
+information is discovered throw away the transformed loop body and retransform
+the original with updated assumptions.  Repeat until the analysis result has
+reached a fixpoint and keep the last transformation as result.
+
+
+\begin{lstlisting}[name=Code, caption={Speculative rewriting: initial optimistic
+iteration (middle), fixpoint (right) reached after second iteration}, captionpos=b, 
+label=list-speculative, float=t]
+var x = 7                 var x = 7          var x = 7 //dead
+var c = 0                 var c = 0          var c = 0
+while (c < 10) {          while (true) {     while (c < 10) {
+  if (x < 10) print("!")    print("!")         print("!")
+  else x = c                print(7)           print(7)
+  print(x)                  print(0)           print(c)
+  print(c)                  c = 1              c += 1
+  c += 1                  }                  }
+}
+\end{lstlisting}
+%}                                            print(7)
+%print(x)                                     print(c)
+%print(c)                                     
+%\end{lstlisting}
+This algorithm allows us to do all forward data flow analyses and transforms in
+one uniform, combined pass driven by rewriting. An example is shown in
+Listing~\ref{list-speculative}.  In the initial iteration (middle), separately
+specified rewrites for variables and conditionals work together to 
+determine that \code{x=c} is never executed. At the end of the loop body we
+discover the write to \code{c}, which invalidates our initial optimistic
+assumption \code{c=0}.  We rewrite the original body again with the augmented
+information (right).  This time there is no additional knowledge discovered so
+the last speculative rewrite becomes the final one.  
+% we were a bit confused about this sentence/doesn't seem necessary
+%Symbolic execution
+%continues after the loop whether we are still certain that \code{x=c} was never
+%executed.
+
+
+
+
+\subsection{Side Effects and Mutation}
+
+Expressions with explicit effects are marked using
+\code{reflectEffect} instead of \code{toAtom}.
+The counterpart \code{reifyEffects} creates a
+\code{Block} object, recording all effects that occur
+within the passed block:
+\begin{listing}
+def reflectEffect[T](x: Def[T]): Exp[T]
+def reifyEffects[T](b: => Exp[T]): Block[T]
+\end{listing}
+
+Delite has other, more fine grained, variants of \code{reflectEffect} which
+allow the tracking of mutations per allocation site. Aliasing and sharing of
+heap objects such as arrays are tracked via optional annotations on IR
+nodes. Reads and writes of mutable objects are automatically serialized and
+appropriate dependencies inserted to guarantee legal parallel execution.
+
+Compound nodes can internally use effects but be pure externally:
+\begin{listing}
+case class Foo() extends DeliteOpSingleTask {
+  def block = { /* allocate m and modify */ } }
+\end{listing}
+The result is pure because changes to \code{m} cannot
+be observed outside the block.
+
+For example, OptiML provides methods to convert data structures such as
+Vectors and Matrices from immutable to mutable and vice versa.
+The default is to create a copy of the underlying object.
+However, in some cases liveness analysis can determine that a
+conversion is safe and remove the copy:
+\begin{listing}
+def foo(x: Rep[Vector]) =
+  val y = x.mutable; /* modify y */  y.clone
+val v = Vector.rand(100)
+println(foo(v))
+\end{listing}
+This program will modify \code{v} in place. Adding a statement \code{println(v)}
+at the end will force a copy to be created since the input to \code{foo}, \code{x},
+is used after the call to \code{foo}.
+
+
+\subsection{Loop Fusion and Deforestation}
+
+\newcommand{\yield}[0]{\leftarrow}
+\newcommand{\G}[0]{\mathcal{G}}
+
+The use of independent and freely composable traversal operations such as
+\code{v.map(..).sum} is preferable to explicitly coded loops. However, naive
+implementations of these operations would be expensive and entail lots of
+intermediate data structures.  Delite provides a novel loop fusion algorithm for
+data parallel loops and traversals. The core loop abstraction is
+\begin{listing}
+  loop(s) $\overline{\mathtt{{x=}}\G}$ { i => $\overline{E[ \mathtt{x} \yield \mathtt{f(i)} ]}$ }
+\end{listing}
+where \code{s} is the size of the loop and \code{i} the loop
+variable ranging over $[0,\mathtt{s})$. A loop can compute
+multiple results $\overline{\mathtt{x}}$, each of which is associated
+with a generator $\G$, one of \code{Collect}, which creates a flat array-like
+data structure, \code{Reduce($\oplus$)}, which reduces values with
+the associative operation $\oplus$, or \code{Bucket($\G$)}, which
+creates a nested data structure, grouping generated values by key
+and applying $\G$ to those with matching key. Loop bodies consist
+of yield statements \code{x $\yield$ f(i)} that define values
+passed to generators (of this loop or an outer loop), embedded
+in some outer context $E[.]$ that might consist of other loops
+or conditionals. For \code{Bucket} generators yield takes
+(key,value) pairs.
+
+This model is expressive enough to model many common collection
+operations:
+\begin{listing}
+x=v.map(f)     loop(v.size) x=Collect { i => x $\yield$ f(v(i)) }
+x=v.sum        loop(v.size) x=Reduce(+) { i =>  x $\yield$ v(i) }
+x=v.filter(p)  loop(v.size) x=Collect { i => if (p(v(i))) 
+                                                x $\yield$ v(i) }
+x=v.flatMap(f) loop(v.size) x=Collect { i => val w = f(v(i))
+                         loop(w.size) { j => x $\yield$ w(j) }}
+x=v.distinct   loop(v.size) x=Bucket(Reduce(rhs)) { i => 
+                                        x $\yield$ (v(i), v(i)) }
+\end{listing}
+Other operations are accommodated by generalizing slightly. Instead of
+implementing a \code{groupBy} operation that returns a sequence of
+(Key, Seq[Value]) pairs we can return the keys and
+values in separate data structures. The equivalent of \code{(ks,vs)=v.groupBy(k).unzip}
+is:
+\begin{listing}
+loop(v.size) ks=Bucket(Reduce(rhs)),vs=Bucket(Collect) { i => 
+  ks $\yield$ (v(i), v(i)); vs $\yield$ (v(i), v(i)) }
+\end{listing}
+
+The fusion rules are summarized in Figure~\ref{fig-fusion}.
+Multiple instances of \code{f1(i)} are subject to CSE and not evaluated twice.
+Substituting \code{x1(i2)} with \code{f1(i)} will remove a reference to \code{x1}.
+If \code{x1} is not used anywhere else, it will also be subject to DCE.
+Within fused loop bodies, unifying index variable \code{i} and substituting
+references will trigger the uniform forward transformation pass.
+Thus, fusion not only removes intermediate data structures but also provides
+additional optimization opportunities inside fused loop bodies
+(including fusion of nested loops).
+%Section~\ref{parallel} discusses how more DSLs encode
+%high-level data parallel operations on top of this
+%formalism using e.g.\ \code{DeliteOpMap} or \code{DeliteZipWith}.
+
+\begin{figure}
+
+Generator kinds: $\mathcal{G} ::= $ \code{Collect} $|$ \code{Reduce($\oplus$)} $|$ \code{Bucket($\mathcal{G}$)} \\
+Yield statement: xs $\yield$ x \\
+Contexts: $E[.] ::= $ loops and conditionals \\[-4pt]
+
+Horizontal case (for all types of generators):
+\begin{listing}[aboveskip=7pt]
+       loop(s) x1=$\G_1$ { i1 => $E_1[$ x1 $\yield$ f1(i1) $]$ }
+       loop(s) y1=$\G_2$ { i2 => $E_2[$ x2 $\yield$ f2(i2) $]$ }
+\end{listing}
+\vspace{-5pt}{\hspace{6mm}\rule{0.8\columnwidth}{0.25pt}}
+\begin{listing}
+     loop(s) x1=$\G_1$, x2=$\G_2$ { i => 
+              $E_1[$ x1 $\yield$ f1(i) $]$; $E_2[$ x2 $\yield$ f2(i) $]$ }
+\end{listing}
+~\\[-5pt]
+Vertical case (consume collect):
+\begin{listing}
+      loop(s) x1=Collect { i1 => $E_1[$ x1 $\yield$ f1(i1) $]$ }
+    loop(x1.size) x2=$\G$ { i2 => $E_2[$ x2 $\yield$ f2(x1(i2)) $]$ }
+\end{listing}
+\vspace{-5pt}{\hspace{3mm}\rule{0.9\columnwidth}{0.25pt}}
+\begin{listing}
+   loop(s) x1=Collect, x2=$\G$ { i => 
+                $E_1[$ x1 $\yield$ f1(i); $E_2[$ x2 $\yield$ f2(f1(i)) $]]$ }
+\end{listing}
+~\\[-5pt]
+Vertical case (consume bucket collect):
+\begin{listing}
+            loop(s) x1=Bucket(Collect) { i1 => 
+                $E_1[$ x1 $\yield$ (k1(i1), f1(i1)) $]$ }
+      loop(x1.size) x2=Collect { i2 =>  
+        loop(x1(i2).size) y=$\G$ { j => 
+          $E_2[$ y $\yield$ f2(x1(i2)(j)) $]$ }; x2 $\yield$ y }
+\end{listing}
+\vspace{-5pt}{\hspace{3mm}\rule{0.85\columnwidth}{0.25pt}}
+\begin{listing}
+    loop(s) x1=Bucket(Collect), x2=Bucket($\G$) { i => 
+        $E_1[$ x1 $\yield$ (k1(i), f1(i));
+            $E_2[$ x2 $\yield$ (k1(i), f2(f1(i))) $]]$ }
+\end{listing}
+
+\caption{\label{fig-fusion} Loop fusion}
+\end{figure}
+
+
+\comment{
+example (filter + flatMap)
+\begin{listing}
+loop(s) x1:Collect1 { i1 => if (c1) yield_x1(f1(i1)) }
+loop(x1.size) x2:Gen2 { i2 => loop(x1(i2).length) { j => 
+  yield_x2(f2(x1(i2)(j))) }}
+
+loop(s) x1:Collect1,x2:Gen2 { i => 
+  if (c1) { yield_x1(f1(i)); loop(f1(i).length) { j => 
+    yield_x2(f2(f1(i)(j))) } } }
+\end{listing}
+
+other way round:
+\begin{listing}
+loop(s) x1:Collect1 { i1 => loop(r) { j => 
+  yield_x2(f1(i1,j)) } }
+loop(x1.size) x2:Gen2 { i2 => if (c2) yield_x2(f2(x1(i2))) }
+
+loop(s) x1:Collect1,x2:Gen2 { i => 
+  foreach(r) { j => 
+    yield_x2(f1(i,j)); if (c2) yield_x2(f2(f1(i,j))) } }
+\end{listing}
+
+
+%\todo{groupBy example: show optiql?}
+
+\begin{listing}
+\end{listing}
+}
+
+

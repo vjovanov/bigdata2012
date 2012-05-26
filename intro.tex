@@ -1,22 +1,29 @@
 \section{Introduction}
 \label{sec:introduction}
 
-In the past decade numerous programming models models have been developed for distributed data parallel processing. Starting with MR and Dryad (low level interfaces) followed by dryad/linq, flume java, spark (high level interface) and pig and Hive with SQL like interface.
+In the past decade numerous frameworks and programming models for BigData cluster computng have been studied [\todo{Cite Mapreduce, Dryad, Pig, Nephele, Spark}]. Programming models of these systems impose a tradeoff between generality, performance and productivity. Systems like Hadoop \todo{cite hadoop} provide a low level general purpose programming model which allows writing fine grained code with low level optimizations but sacrefices productivity. Limited programming models like SQL\todo{cite} and Pig\todo{cite} exploit domain knowledge to provide good performance and productivity for large number of use cases but they are not general. Finally, models like Spark \todo{cite}, FlumeJava \todo{cite} and Dryad/LINQ \todo{cite} provide high level operations and general purpose programming models but program performance suffers \todo{cite}. Moreover, great number of existing programming models greatly differ. This leads to low code portability and makes migration to a new framework very hard. 
 
-With mentioned programming models we observe that there is a tradeoff between high level, productive models which have performance penalty, domain specific approaches that laverage a narrow programming model but provide high level optimizations and low level interfaces like Dryad and MapReduce that are very hard to program in.
+This tradeoff exists because in imperative and polimorphic programming models operations can have arbitrary side effects and the structure of the whole program (AST) is not available at runtime. This precludes the compiler to highly optimize the code. High level operations are glued together with inefficent abstractions like iterators and channels. Constant and side effect free operations like date/time instantiation, regular expression compilation and high precision decimal numbers are often hidden by abstration and recomputed in the hot path for each piece of data. Although domain speciffic approaches like Pig and SQL through their narrow side effect free interface provide good optimizations they come with their own set of limitations. Interface is often too narrow for the problem leading to either invoking host language operations which are hard to optimize or to abandoning the model completely. Moreover, there is the overhead of learning the new language and embedding of the language into the host language which provides debugging, type driven correctnes checking and IDE.     
 
-% Should we mention the code portability as one of major points or use it as additional contribution?
+% Solutions to achieve this. 
+% Steno with iterator fusion. 
+%Manimal with field reduction. 
+% \todo{Side effect tracking in Hadoop.}
 
-% Proposed optimizations
+%To our knowledge none of the existing solutions allows writing high level and general code that does not come with a performance penalty. In MapReduce and Dryad users can optimize the code due to the direct access to the low level operations, partitioning scheme and cluster layout. However, practice has shown that these programs can become very large and that maintaining them becomes a complex task. Systems To overcome this Dryad/LINQ and FlumeBut pactice has shown that of the access to all thcode provides productivity, generaNone of the existing frameworks provide both
 
-% We build upon the work of Delite and LMS and try to use Embedded DSL 
-
-% Effects, compiler optimizations, domain specifc optimizations.
-
+This paper presents a new domain specific language \tool for BigData processing that provides a high level interface similar to the Spark framework. Unlike Spark, \tool uses langauge virtualization \todo{cite scala-virtualized} and light weight modular staging (LMS)\todo{cite lms} to get runtime access to the program structure. LMS enforces explicit effects tracking and provides DSL modules for basic langage constructs and often used libraries giving \tool great genrality. \tool uses exposed program structure with effects to apply optimizations like code motion, loop fusion and field elimination. Highly optimized intermediate representations is then used to generate code for Spark and Scoobi \todo{cite}. Due to LMS modularity \tool can be extended to arbitrary operations and written code is portable between frameworks by replacing thing code generation layer. 
+ 
 % Evaluation
+% 
 
-% Contributions
+% Contributions 
+\tool makes following contributions to the existing state of the art:    
 \begin{itemize}
+  \item We demonstrate a high level general programming model for BigData processing that does not come with abstraction penalty and allows for domain specific optimzations like field reduction. 
+  \item We introduce a novel field reduction mechanism that uses \todo{name and specify tiarks optimization} across \todo{scopes} and applies to general program constructs like conditionals and loops.
+  \item We show that language virtualization and modular staging permit framework specific optimizations and code portability for Big Data systems.  
 \end{itemize} 
 
 % Sections
+In section \ref{sec:background} we will provide background on LMS and language virtualization. In section \ref{sec:programming-model} we explain the interface and present simple program examples. Section \ref{sec:compiler} describes code motion, iterator fusion and other compiler optimizations. Section \ref{sec:field-reduction} explains the field reduction optimization. We evaluate \tool in \ref{sec:evaluation}, present related work in \ref{sec:related-work} and talk about future work and conclusions in \ref{sec:conclusion}.

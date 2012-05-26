@@ -6,8 +6,8 @@
 %\usepackage[utf8]{inputenc}
 %\usepackage{amsmath}
 %\usepackage{amssymb}
-%\usepackage[usenames]{color}
-%\usepackage{graphicx}
+\usepackage[usenames]{color}
+\usepackage{graphicx}
 %\usepackage{url}
 %\usepackage[scaled=0.8]{luximono}
 
@@ -86,6 +86,9 @@
 
 \raggedbottom
 
+
+\newcommand{\tool}{Stivo}
+
 \begin{document}
   %\conferenceinfo{BigData'12,} {(date and location)}
   %\CopyrightYear{2012}
@@ -95,7 +98,7 @@
   % Title
   % 
     
-  \title{Stivo: Embedded DSL for High Performance BigData Processing}
+  \title{\tool: Embedded DSL for High Performance BigData Processing}
   %\subtitle{[Extended Abstract]
   %\titlenote{A full version of this paper is available as
   %\textit{Author's Guide to Preparing ACM SIG Proceedings Using
@@ -142,6 +145,10 @@
   % Sections 
   %
   \input{intro}
+  \input{background}
+  \input{programming-model}
+  \input{compiler}
+  \input{field-reduction}
   \input{evaluation}
   \input{related}
   \input{conclusion}

@@ -1,2 +1,34 @@
 \section{Programming Model}
 \label{sec:programming-model}
+
+% Scala and Spark and Collections like interface 
+
+Programming model: \\
+  % supported on all frameworks 
+  \scode{map(f: Rep[A] => Rep[B]): Rep[DList[B]]}
+
+  \scode{filter(f: Rep[A] => Rep[Boolean]): Rep[DList[A]]}
+
+  \scode{flatMap(f: Rep[A] => Rep[Iterable[B]]): Rep[DList[B]]}
+
+  \scode{++ (c: Rep[DList[A]]): Rep[DList[A]]}
+
+  \scode{groupByKey: Rep[DList[(K, Iterable[V])]]}
+
+  \scode{partitionBy(n: Rep[Double]): Rep[DList[T]]}
+
+  \scode{join(n: Rep[DList[(K, W)]]): Rep[DList[(K, (V, W)]]}
+
+  \scode{cross(n: Rep[DList[U]]): Rep[DList[(T, U)]}
+
+  \scode{cogroup(n: Rep[DList[(K, W)]]): Rep[DList[(K, Iterable[K], Iterable[W])]]}
+
+  \scode{reduceByKey(f: (Rep[V], Rep[V]) => Rep[V]): Rep[DList[(K, V)]] }
+
+  \scode{cache: Rep[DList[T]]} //* has effects only spark
+
+ % supported only by Crunch and Spark back-ends
+
+ \scode{sort(asc: Rep[Boolean])}
+
+ \scode{sample(p: Rep[Double])}

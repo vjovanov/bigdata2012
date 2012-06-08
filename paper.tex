@@ -8,6 +8,12 @@
 %\usepackage{amssymb}
 \usepackage[usenames]{color}
 \usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{caption}
+% fixes caption package
+\DeclareCaptionType{copyrightbox} 
+
+\usepackage{subcaption}
 %\usepackage{url}
 %\usepackage[scaled=0.8]{luximono}
 
@@ -114,13 +120,14 @@
 	% 1st. author
 	\alignauthor
 	Stefan Ackermann\\
-	 %\affaddr{Institute for Clarity in Documentation}\\
+	 \affaddr{ETH Zurich}\\
 	 %\affaddr{1932 Wallamaloo Lane}\\
 	 %\affaddr{Wallamaloo, New Zealand}\\
 	 \email{stefan.ackermann@epfl.ch}
         \alignauthor
         Vojin Jovanovic\\
-	 \email{vojin.jovanovic@epfl.ch}
+         \affaddr{EPFL}\\
+	 \email{vojin.jovanovic@epfl.ch}         
 % \and for another row of authors
   }
   
@@ -150,12 +157,13 @@
   \input{intro}
   \input{background}
   \input{programming-model}
-  \input{compiler}
   \input{field-reduction}
+  \input{fusion}
   \input{evaluation}
   \input{related}
+  \input{discussion}
   \input{conclusion}
-  
+
   %
   % Bibliography
   %

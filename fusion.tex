@@ -12,33 +12,29 @@ Before fusion optimization, the program IR represents almost 1-1 mapping to the 
 \begin{subfigure}[b]{.5\linewidth}
 \begin{lstlisting}
 out = in.map(op) =>
-  loop(ShapeDep(in), i, {
-    yield(out, op(IteratorValue(in)))
-   })
+  loop(shape_dep(in)(i) {
+    yield(out, op(iterator_value(in)))
+  }
 \end{lstlisting}
 \caption{\code{map} lowering rule.}
 \end{subfigure}
   \begin{subfigure}[b]{.5\linewidth}
    \begin{lstlisting}
 out = in.filter(op) =>
-   loop(ShapeDep(in), i, {
-      if (op(IteratorValue(in)) 
-        yield(out, IteratorValue(in) 
-       else
-        skip()
-   })
+   loop(shape_dep(in)(_) {
+      if (op(iterator_value(in)) 
+        yield(out, iterator_value(in) 
+   }
 \end{lstlisting}
 \caption{\code{filter} lowering rule.}  
 \end{subfigure}
 \begin{subfigure}[b]{.5\linewidth}
-\begin{lstlisting}
-out = in.flatMap(op) =>
-   loop(ShapeDep(in), i, { 
-      val tmp = op(IteratorValue(in))
-       loop(tmp.size, i, {
-         yield(out, tmp(i))
-       }
-    })
+\begin{listing}
+in.flatMap(op) =>
+  loop(shape_dep(in))(_) {
+     val w = op(iterator_value(in))
+     loop(w.size) {yield(out, w(i))}
+  }
  \end{lstlisting}
     \caption{\code{flatMap} lowering rule.}
   \end{subfigure}
@@ -48,4 +44,4 @@ out = in.flatMap(op) =>
 
 After the lowering transformation the loop fusion is applied. It vertically fuses pairs of loops until the fixed point is reached. In each fusion iteration all other LMS optimizations are applied as well. To avoid generating actual \code{while} loops we include a modified loop generation module for every back-end. This module emits the most general operation (equivalent of the Hadoop \code{Mapper} class) that the framework provides. With this approach we could also generate code directly for Hadoop MapReduce which would result in a single highly optimized loop per \code{Mapper}. After prototype experiments we concluded that the gain is not significant compared to using higher level back-ends. Therefore, as an alternative, we used Scoobi and Crunch which provide high level operations and take care of serialization and join operations.    
 
-Unlike MapReduce based back-ends, Spark design uses the pull data-flow model implemented through iterators. Generating code for the pull data-flow model from the loop based (push data-flow) model proved to be non-trivial. After, evaluating different types of queues and array buffers we have decided to use the approach that stores intermediate results in an, fixed size, 4 MB array buffer.
+Unlike MapReduce based back-ends, Spark design uses the pull data-flow model implemented through iterators. Generating code for the pull data-flow model from the loop based (push data-flow) model proved to be non-trivial. After, evaluating different types of queues and array buffers we have decided to use the approach that; stores intermediate results in an, fixed size, 4 MB array buffer.

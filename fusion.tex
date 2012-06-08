@@ -18,6 +18,18 @@ out = in.map(op) =>
 \end{lstlisting}
 \caption{\code{map} lowering rule.}
 \end{subfigure}
+%loop(s) x1:Collect1 { i1 => if (c1) yield_x1(f1(i1)) }
+%loop(x1.size) x2:Gen2 { i2 => loop(x1(i2).length) { j => 
+% yield_x2(f2(x1(i2)(j))) }}
+
+%loop(s) x1:Collect1,x2:Gen2 { i =>
+% if (c1) { yield_x1(f1(i)); loop(f1(i).length) { j =>
+ %  yield_x2(f2(f1(i)(j))) } } }
+
+%\vspace{-5pt}{\hspace{3mm}\rule{0.85\columnwidth}{0.25pt}}
+%\mathtt{{x=}}\G}$ { i => $\overline{E[ \mathtt{x} \yield \mathtt{f(i)} ]
+%$\overline{}$
+
   \begin{subfigure}[b]{.5\linewidth}
    \begin{lstlisting}
 out = in.filter(op) =>

@@ -8,51 +8,48 @@ The loop fusion optimization described in section \ref{subsec:lms-optimizations}
 Before fusion optimization, the program IR represents almost 1-1 mapping to the operations in the programming model. Each operation is represented by the corresponding IR node which carries its data and control dependencies. On that IR we first apply a lowering transformation which maps operations \code{map}, \code{flatMap} and \code{filter} to the corresponding loop representation. Described transformation is achieved by the rules described in \ref{lst:fusion-rules}. These rules introduce two new nodes: \emph{i)} \code{ShapeDep(col: Rep[DList[_]]): Rep[Int]} that stands in place of the loop shape variable but carries the explicit information about its vertical dependency and \emph{ii)} \code{IteratorValue(col: Rep[DList[_]]): Rep[Int]} that represents reading from an iterator of the preceding \code{DList}. The \code{yield} operation represents storing to the collection and is afterwards replaced by the bodies of fused loops.
 
 \begin{figure}
-
-\begin{subfigure}[b]{.5\linewidth}
 \begin{lstlisting}
-out = in.map(op) =>
-  loop(shape_dep(in)(i) {
-    yield(out, op(iterator_value(in)))
-  }
+Program:$IR$             DList nodes: $N$  
+Framework: $B = \{Spark, Scoobi, Crunch\}$ 
+Functions ($b \in B \land n \in N$): 
+  $multiple\_output(b) = b \ne Spark$
+  $fusible\_op(b, n) = map(n, \_) \lor filter(n, \_) \lor flatMap(n, _) $
+  $fuse\_pred(b, n) = multiple\_outuput(b) \lor |pred(n)| = 1$ 
+  $fusible(b, n) = fusible\_op(b, succ(n))) \lor$
+      $((fusible\_op(b, pred(n)) \land fuse\_pred(b, n))$
 \end{lstlisting}
-\caption{\code{map} lowering rule.}
-\end{subfigure}
-%loop(s) x1:Collect1 { i1 => if (c1) yield_x1(f1(i1)) }
-%loop(x1.size) x2:Gen2 { i2 => loop(x1(i2).length) { j => 
-% yield_x2(f2(x1(i2)(j))) }}
 
-%loop(s) x1:Collect1,x2:Gen2 { i =>
-% if (c1) { yield_x1(f1(i)); loop(f1(i).length) { j =>
- %  yield_x2(f2(f1(i)(j))) } } }
 
-%\vspace{-5pt}{\hspace{3mm}\rule{0.85\columnwidth}{0.25pt}}
-%\mathtt{{x=}}\G}$ { i => $\overline{E[ \mathtt{x} \yield \mathtt{f(i)} ]
-%$\overline{}$
-
-  \begin{subfigure}[b]{.5\linewidth}
-   \begin{lstlisting}
-out = in.filter(op) =>
-   loop(shape_dep(in)(_) {
-      if (op(iterator_value(in)) 
-        yield(out, iterator_value(in) 
-   }
+Lowering rules:
+\begin{lstlisting}
+         $b \in B$   $n \in N$     $fusible(b, n)$
+\end{lstlisting} 
+\vspace{-5pt}{\hspace{0mm}\rule{0.99\columnwidth}{0.25pt}}
+\begin{lstlisting}
+$out = map(n, op) \rightarrow  loop(shape\_dep(n) \{$
+  $yield(out, op(iterator\_value(n)))\\$
+$\}$
+\end{lstlisting} 
+\begin{lstlisting}
+         $b \in B$   $n \in N$     $fusible(b, n)$
+\end{lstlisting} 
+\begin{lstlisting}
+$out = filter(map, op) \rightarrow loop(shape\_dep(n) \{$
+   $if (op(iterator\_value(in))$
+     $yield(out, iterator\_value(in) $
+$\}$
 \end{lstlisting}
-\caption{\code{filter} lowering rule.}  
-\end{subfigure}
-\begin{subfigure}[b]{.5\linewidth}
-\begin{listing}
-in.flatMap(op) =>
-  loop(shape_dep(in))(_) {
-     val w = op(iterator_value(in))
-     loop(w.size) {yield(out, w(i))}
-  }
- \end{lstlisting}
-    \caption{\code{flatMap} lowering rule.}
-  \end{subfigure}
-\caption{Rules for lowering declarative \code{DList} operations}
-  \label{lst:fusion-rules}
+\begin{lstlisting}
+         $b \in B$   $n \in N$     $fusible(b, n)$
+\end{lstlisting} 
+\begin{lstlisting}
+$out = in.flatMap(op) \rightarrow loop(shape\_dep(n)) \{$
+  $w = op(iterator\_value(in))$
+  $loop(w.size) \{yield(out, w(i))\}$
+$\}$
+\end{lstlisting}
 \end{figure}
+
 
 After the lowering transformation the loop fusion is applied. It vertically fuses pairs of loops until the fixed point is reached. In each fusion iteration all other LMS optimizations are applied as well. To avoid generating actual \code{while} loops we include a modified loop generation module for every back-end. This module emits the most general operation (equivalent of the Hadoop \code{Mapper} class) that the framework provides. With this approach we could also generate code directly for Hadoop MapReduce which would result in a single highly optimized loop per \code{Mapper}. After prototype experiments we concluded that the gain is not significant compared to using higher level back-ends. Therefore, as an alternative, we used Scoobi and Crunch which provide high level operations and take care of serialization and join operations.    
 

@@ -1,0 +1,8 @@
+\section{Future Work}
+\label{sec:future-work}
+
+From the wide range of relational optimizations, \tool currently supports only early projection. In the future work we plan to introduce early filtering which will push filter operations  \todo{cite} before the expensive operators that require a barrier. Also, we plan to include program analysis phase which will allow building of indexes. 
+
+Text and XML processing are often processed in cluster computing and efficient processing of it can greatly reduce cost and energy consumption. With that in mind we plan to integrate \tool with other text parsing DSLs that are deeply embedded into the standard library. If prototyping shows that performance gains are significant we will add DSL modules for regular expressions, Scala parser combinators and XML library. 
+
+\tool currently only operates on distributed datasets so programs written in it can not be used for in memory data. We plan to integrate \tool with Delite \todo{cite Delite} collections DSL which supports very efficient execution of batch operations. Collections DSL from Delite also allows running queries on heterogeneous hardware architectures where jobs are scheduled for execution on both CPU and GPU processors. 

@@ -55,4 +55,3 @@ In the listing \ref{lst:wordcount} we show the implementation of the simple word
 \end{lstlisting}
 
 All methods except for \code{cache} and \code{sort} can be mapped to frameworks Scoobi, Spark and Crunch. We have been prototyping with other back-ends (including Dryad) and we have concluded that these primitives are portable to these back-ends. Method \code{cache} currently works with Spark  only but it can be added to the interface of other back-ends without any effect. From existing frameworks today only Haloop and Twister \todo{check twister} can benefit from it. Method sort is inconsistent in most of the frameworks so we have not mapped uniformly to all of them. However, with slight modifications to back-end implementations it could be efficiently done. Sort can also be implemented in \tool it self by using \code{takeSample} and \code{partitionBy}.
-

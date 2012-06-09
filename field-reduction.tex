@@ -1,40 +1,30 @@
-\section{Projection Optimization}
+\section{Projection Insertion}
 
-A common optimization is to remove values from the intermediate data which are no longer needed in later phases of the computation. It has been implemented for SQL databases for a long time, and recently been added to Pig as well \todo{ add footnote? version 0.8? 0.9?}. For this optimization to work and to be useful, all field accesses need to be
-explicit for the framework. A library can provide this, but the programming interface will suffer from it. It used to
-be a tip to do this optimization manually for Pig before they added this optimization, the tip still is valid for
-cascading and scalding.
+% Intro/Motivation 
+A common optimization in data processing is to early remove intermediate values that not needed in later phases of the computation. It has been implemented for SQL databases for a long time, and has recently been added to the Pig framework. This optimization requires all field accesses in the program to be explicit. A library can provide this, but the programmer needs to specify it explicitly - which is error prone and tedious. 
 
-We allow the user to create simple types: final immutable classes with multiple fields. We do allow nested types, as
-long as the nesting is finite and known at compile time. While implementing our benchmarks we found this to be a
-reasonably expressive model for big data programming. The user supplies a simple description of the classes, from which we generate all the necessary code for its use in \tool. The generated code includes a parsing method, to which the user only has to supply a string to parse and a regex to split it on. Our intermediate representation then describes all field accesses explicitly and we can generate highly specialized code for these types including serialization schemes and other plumbing code for our backends.
-\\
-LMS does a very good job of optimizing these classes within the same scope, as shown in Section \todo{add reference}. But we want to endorse a programming model with many small and simple functions - which each have their own scope - as these are easier to read and optimize. For our projection optimization algorithm we needed thus an analysis that can track the usage of fields between these scopes. We found and implemented such an analysis, representing field accesses of a scope as a simple list of strings containing a path from the scopes input to a value. We used these primitives to implement our analysis:
+% It used to be a tip to do this optimization manually for Pig before they added this optimization, the tip still is valid for cascading and scalding.
+
+In \tool we support this optimization for algebraic data types, more specifically final immutable Scala classes with a finite level of nesting. Our approach does not require special syntax or access operators and supports method declarations on a data type like  regular Scala classes. While implementing our benchmarks we found this to be a reasonably expressive model for big data programming. The DSL user needs to supply class declarations, from which we generate all the necessary code for its use in \tool. The generated code includes a parsing method, to which the user has to supply a regular expression in case the data is stored in text form. Our IR describes all field accesses explicitly and we can generate highly specialized code for these types including serialization schemes and other glue code for the back-ends we support.
+
+% 
+In section \ref{sbusec:lms-optimizations} we have shown how LMS optimizes these classes within the same program scope. In \tool we endorse a declarative programming model with many short functions - which each have their own scope - as these are easier to read and optimize. For our projection optimization algorithm we thus needed an analysis that can track the usage of fields between these scopes. 
+
+\todo{We found and implemented such an analysis which represents field accesses of a scope as a list of strings containing a path from the scopes input to a value. more clear} We used these primitives to implement our analysis: 
+
+% Operations form a DAG, ?rule is that all fields in upper nodes can not be eliminated if they are used in lower ones.
 
 \begin{itemize}
-\item Create field accesses for all reachable subparts of a type. For example a save operation on a nested object must
-propagate field reads for all parts of that object.
-\item Rewrite accesses from predecessors according to semantics of the operation. The filter operation will never change the object itself, so all field accesses from a filters successors must be propagated to its predecessors. A GroupByKey
-operation on the other hand always reads all parts of the key, and additionally changes all field accesses of the form
-``input'' :: ``\_2'' :: ``iterable'' :: x to ``input'' :: ``\_2'' :: x. \ 
-\item Analyze a closure. A closure can be analyzed by filtering all the expressions contained in its scope and checking
-if they (recursively) read fields from the input of that scope. As such we do not actually analyze all code, analyzing
-the field reads is enough. In our environment this proves sufficient to analyze all code inside closures that do not
-contain while statements.
-\item Replace the output symbol of a scope with a synthesized one which only contains the later needed values. See
-example \todo{sample} for a simple illustration. We need this primitive for the analysis as well for the later insertion
-optimization. We need this to analyze map nodes correctly, which can do arbitrary transformations. If we would not do
-this, some field reads would be in the scope to fill in values into the output which are no longer needed afterwards.
+\item Create field accesses for all \todo{reachable subparts of a type}. For example a \code{DList.save(....)} operation on a nested object must propagate field reads for all parts of that object.
+\item Rewrite accesses from predecessors \todo{of whom} according to semantics of the operation. For example, the filter operation will never change the object itself, so all field accesses from a filters successors must be propagated to its predecessors. A GroupByKey operation on the other hand always reads all parts of the key, and additionally changes all field accesses of the form \code{"input'' :: "\_2" :: "iterable" :: x to "input" :: "\_2" :: x} 
+\item Analyze a closure scope. A closure can be analyzed by filtering all the expressions contained in its scope and checking if they (recursively) read fields from the input of that scope. As such we do not actually analyze all code, analyzing the field reads is enough. In our environment this proves sufficient to analyze all code inside closures that do not contain while statements. \todo{redundant}
+\item Replace the output symbol of a scope with a synthesized one which only contains the later needed values. See example \todo{sample} for a simple illustration. We need this primitive for the analysis as well for the later projection insertion. We need this to analyze map nodes correctly, which can do arbitrary transformations. If we would not do this, some field reads would be in the scope to fill in values into the output which are no longer needed afterwards.
 Once this is done, we can proceed with the closure analysis primitive to analyze the surviving field reads.
 \end{itemize}
 Table \todo{reference} shows how these primitives are combined to form the rules of the most important operations on Dlist.
 
-We used these primitives to implement analysis for all operations in {\textbackslash}tool. The actual projection
-insertion optimization becomes then trivial, just going backwards through the execution graph, starting from operations
-where an object escapes our program. For each encountered node, we analyze that nodes field reads and propagate this
-info to the correct predecessors. In presence of loops we apply it iteratively until we reach a fix point. We then get
-a list of all fields to survive between scopes, and decide based on heuristics, where to insert narrowing mapper
-operations and which mapping operations to rewrite such that they produce a simpler object. This will introduce
+\todo{Each clause needs to be either well known in the scientific discourse - cited if significant, or mentioned earlier in the paper}
+We used these primitives to implement analysis for all operations in \tool. The actual projection insertion becomes then trivial. Algorithm starts from the end of the execution graph, starting from operations where an object escapes our program. For each encountered node, we analyze that nodes field reads and propagate this info to the correct predecessors. In presence of loops we apply it iteratively until we reach a fix point. We then get a list of all fields to survive between scopes, and decide based on heuristics, where to insert narrowing mapper operations and which mapping operations to rewrite such that they produce a simpler object. This will introduce
 additional computational overhead, but only depending on whether loop fusion is actually enabled. 
 
 
@@ -45,9 +35,9 @@ by default, provides dead code elimination and a field read from a constructor i
 expression directly, thus rendering the intermediate object creation dead. Additionally we rely on dead code
 elimination. 
 
-An advantage of our scheme is that it does not require a full code analysis.
+An advantage of our scheme is that it does not require a full code analysis.\todo{why}
 
-
+\todo{}
 
 \begin{table}
     \begin{tabular}{l|l|l}

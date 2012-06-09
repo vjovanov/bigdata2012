@@ -54,9 +54,8 @@ In the listing \ref{lst:println_dsl} we show a simplified version of a reusable 
 \end{lstlisting}
 
 \subsection{BigData Frameworks}
-In \tool we use the code generation to achieve code portability and generate code for Spark, Scoobi and Crunch. Spark is the new distributed data parallel processing system completely written in Scala. For data operations it uses high level functional interface similar to Scala Collections\todo{cite scala collections}. It allows explicit caching of data in memory, which gives it very low latency. This makes it suitable choice for iterative algorithms and interactive data analysis. 
-
-Scoobi and Crunch are high level interfaces for the Hadoop back-end, similar in functionality to FlumeJava. Scoobi is written in Scala so it provides much lighter syntax and more expressive API.
+\todo {references to github?}
+\tool generates Scala code for Crunch, Scoobi and Spark. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in [FlumeJava]. Crunch is implemented in java and provides a rather low level interface, the user must for example specify the serialization for his classes. Scoobi on the other hand is a Scala framework, features a higher level interface and creates efficient serialization for user classes with only a minimal amount of help required. Spark is a recent execution engine and makes better use of the cluster's memory and thus provides great speedups in iterative jobs which can reuse the same data multiple times over Hadoop. It also features a high level interface and provides support for multiple serialization frameworks. 
 
 \subsection{LMS Optimizations}
 \label{sbusec:lms-optimizations}

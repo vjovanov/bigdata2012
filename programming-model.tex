@@ -2,13 +2,14 @@
 \label{sec:programming-model}
 
 % Scala and Spark and Collections like interface
-The basic abstraction in our programming model is the the interface \scode{DList[T]}. \scode{DList[T]} represents an distributed collection of elements that have type \scode{S} which is the subtype of \scode{T}. The elements of the \scode{DList[T]} collection are immutable so each operation on the list can only: \emph{i)}produce a new \scode{DList}, \emph{ii)}save it to persistent storage or \emph{iii)}return an aggregate value. 
+The basic abstraction in our programming model is the interface \scode{DList[T]}. \scode{DList[T]} represents a distributed collection of elements that have type \scode{S} which is the subtype of \scode{T}. The elements of the \scode{DList[T]} collection are immutable so each operation on the list can only: \emph{i)} produce a new \scode{DList}, \emph{ii)} save it to persistent storage, \emph{iii)} materialize it on the master node or \emph{iv)} return an aggregate value. 
 
 % Operations and reference to the table. monadic operations, concat, partitionBy, cache, count returns the value
-\code{DList} operations are presented in the table \ref{tbl:operations}. In the left column we show which framework is supported by the method in the middle column we show the method name and in the right column we show the type of the input \code{DList} and operations return type. 
+\code{DList} operations are presented in Table \ref{tbl:operations}. In the left column we show which frameworks support which method, the middle column shows the method name and the right column contains the type of the \code{DList} that the operation is called on and the return type. 
 
-Operations \code{DList} and \ref{save} are used for loading and storing data to the persistent storage. \code{map, filter} and \code{flatMap} are standard list comprehensions for transforming the data by applying the argument function and can also be used with Scala \code{for} comprehensions . Operations \code{groupByKey}, \code{join}, \code{cogroup}, \code{cross} and \code{reduce} are used for applicable only if elements of \code{DList} contain a key/value tuple. \code{reduce} is used for general aggregation after the \code{groupByKey} and \code{join, cogroup} and \code{cross} are different type of relational joins. \code{sort} sorts the dataset, \code{partitionBy} defines partitioning among machines and \code{cache} signals that data should be kept in cluster memory for faster future accesses. Two \code{DList}s can be concatenated by operation \code{++}.
+Operations \code{DList} and \code{save} are used for loading and storing data to the persistent storage. \code{map, filter} and \code{flatMap} are standard list comprehensions for transforming the data by applying the argument function and can also be used with Scala \code{for} comprehensions. Operations \code{groupByKey}, \code{join}, \code{cogroup}, \code{cross} and \code{reduce} are applicable only if the elements of \code{DList} form a key/value tuple. \code{reduce} is used for general aggregation after the \code{groupByKey}, \code{join, cogroup} and \code{cross} are different types of relational joins. \code{sort} sorts the dataset, \code{partitionBy} defines partitioning among machines and \code{cache} signals that data should be kept in cluster memory for faster future accesses. Two \code{DList}s can be concatenated by operation \code{++}.
 
+\todo{I challenge this claim. We are nearing scientific fraud. Tiark or Nada couldn't tell me how to do this}
 Some methods accept functions as their parameters. Code within these functions can be either written in \tool DSL or by using existing functions from user or common JVM libraries. Using user functions is equivalent to applying user defined functions in Pig and Hive but it requires no boilerplate.  
 
 \begin{table*}
@@ -17,41 +18,38 @@ Some methods accept functions as their parameters. Code within these functions c
 Framework  & Operation & Transformation\\ \hline
 
 \multirow{12}{*}{All}		       		& \scode{DList(uri: Rep[String])}      				& \scode{String => DList[T]}\\ %\cline{2-3}
-								& \scode{save(f: Rep[String])}      				        & \scode{DList[T] => DList[U]}\\ %\cline{2-3}
+								& \scode{save(f: Rep[String])}      				        & \scode{DList[T] => Unit}\\ %\cline{2-3}
 								& \scode{map(f: Rep[T] => Rep[U])}      				& \scode{DList[T] => DList[U]}\\ %\cline{2-3}
 								& \scode{filter(f: Rep[T] => Rep[Boolean])}			& \scode{DList[T] => DList[T]}\\ %\cline{2-3}
 								& \scode{flatMap(f: Rep[T] => Rep[Iter[U]])}		        & \scode{DList[T] => DList[U]}\\ %\cline{2-3}
 								& \scode{groupByKey()} 							& \scode{DList[(K, V)] => DList[(K, Iter[V])]}\\ %\cline{2-3} 
 								& \scode{reduce(f: (Rep[V], Rep[V]) => Rep[V])} 	        & \scode{DList[(K, Iter[V])] => DList[(K, V)]}\\ %\cline{2-3} 
 								& \scode{cogroup(n: Rep[DList[(K, W)]])} 			& \scode{DList[(K, V)] => DList[(K, (Iter[K], Iter[W]))]}\\ %\cline{2-3} 								
-								& \scode{join(n: Rep[DList[(K, W)]])} 				& \scode{DList[(K, V)] => DList[(K, (V, W)]}\\ %\cline{2-3} 
+								& \scode{join(n: Rep[DList[(K, W)]])} 				& \scode{DList[(K, V)] => DList[(K, (V, W))]}\\ %\cline{2-3} 
 								& \scode{cross(n: Rep[DList[U]])} 					& \scode{DList[T] => DList[(T, U)]}\\ %\cline{2-3} 								
 								& \scode{++(c: Rep[DList[T]])}			                & \scode{DList[T] => DList[T]]}\\ %%\cline{2-3}							
 								& \scode{partitionBy(n: Rep[Partitioner[T]])} 			& \scode{DList[T] => DList[T]}\\ %\cline{2-3} 
-								& \scode{sample(p: Rep[Double])} 					& \scode{DList[T] => Seq[T]}\\ \hline
+								& \scode{takeSample(p: Rep[Double])} 					& \scode{DList[T] => Seq[T]}\\ \hline
 \multirow{2}{*}{Spark}			        & \scode{cache()} 								& \scode{DList[T] => DList[T]}\\ %\cline{2-3} 
 								& \scode{sort(cmp: Rep[Comparator[T]])}			& \scode{DList[T] => DList[T]}\\ \hline
 Crunch						        & \scode{sort(asc: Rep[Boolean])}					& \scode{DList[T] => DList[T]} \\ \hline
 \end{tabular}
-\caption{DList operations and their framework support. For clarity reasons, \scode{Iter} represents the Scala \scode{Iterable} and \scode{Rep[_]} types in the rightmost column are left out.  }
+\caption{DList operations and their framework support. For clarity reasons, \scode{Iter} represents the Scala \scode{Iterable} and \scode{Rep[_]} types in the rightmost column are omitted.  }
 \label{tbl:operations}
 \end{table*}
 
 % Example word count application
-In the listing \ref{lst:wordcount} we show the implementation of the simple word count example. We notice that the program does not have visible \code{Rep} types. Since the large subset of the Scala library is implemented as a DSL module functions like \code{split} and string concatenation are used the same way as they are in Scala. In the second line the regular (with \code{Rep} arguments) method is passed to the \code{map} method. Writing similar user defined function in Pig latin or Hive requires substantial amounts of boilerplate code.  \todo{if then else}
+In the listing \ref{lst:wordcount} we show an implementation of a simple word count example, in which the code does not have visible \code{Rep} types. Since a large subset of the Scala library is implemented as a DSL module, functions like \code{split} and string concatenation are used the same way as they are in Scala. In the second line the regular (with arguments wrapped in \code{Rep}) method \code{parse} is passed to the \code{map} method. Pig and Hive do not have functions in their own language, but allow writing such user defined function in other languages requiring substantial amount of boilerplate code.  \todo{if then else}
 
 % Word count showing generality, rep clean api.
 \begin{lstlisting}[name=code, caption=Example of word count program where type inference removes the need to declare any \scode{Rep} types., captionpos=b, label=lst:wordcount, float=t]
     val read = DList("hdfs://..." + input)
     val parsed = read.map(WikiArticle.parse(_))
-    
-    % need an if here to show regular language constructs
     parsed.flatMap(_.split("\\s"))
-      .map(_ => (_, 1))
+      .map(x => (x, 1))
       .groupByKey
       .reduce(_ + _)
       .save("hdfs://..." + output)
-
 \end{lstlisting}
 
-All methods except for \code{cache} and \code{sort} can be mapped to frameworks Scoobi, Spark and Crunch. We have been prototyping with other back-ends (including Dryad) and we have concluded that these primitives are portable to these back-ends. Method \code{cache} currently works with Spark  only but it can be added to the interface of other back-ends without any effect. From existing frameworks today only Haloop and Twister \todo{check twister} can benefit from it. Method sort is inconsistent in most of the frameworks so we have not mapped uniformly to all of them. However, with slight modifications to back-end implementations it could be efficiently done. Sort can also be implemented in \tool it self by using \code{takeSample} and \code{partitionBy}.
+All methods except for \code{cache} and \code{sort} can be mapped to methods in Scoobi, Spark and Crunch. We have checked that other back-ends (including Dryad) provide these primitives as well. Method \code{cache} currently works with Spark only but it can be added to the interface of other back-ends without any effect, such that the code stays portable. From existing frameworks today only Haloop and Twister \todo{check twister} can benefit from it. Method sort is inconsistent in most of the frameworks so we have not mapped uniformly to all of them. However, with slight modifications to back-end implementations it could be supported as well. Sort can also be implemented in \tool itself by using \code{takeSample} and \code{partitionBy}.

@@ -4,7 +4,7 @@
 % language virtualization
 \subsection{Virtualized Scala}
 \label{subsec:virtualized-scala}
-\tool is written in an experimental version of Scala called Virtualized Scala \cite{sv}. Virtualized Scala provides facilities for simplified deep embedding of domain specific languages. Main facility for achieving this is the desugaring of regular language constructs like conditionals, loops, variable declarations, return statements and equality comparisons to simple method calls. For example, \code{if (c) a else b} gets translated to an \code{__ifThenElse(c, a, b)} method call. In the case of regular language execution this method executes the logic of the conditional but in case of deeply embedded DSLs it is used for creation of  IR node that represents the \code{if} statement.  
+\tool is written in an experimental version of Scala called Virtualized Scala \cite{sv}. Virtualized Scala provides facilities for deep embedding of domain specific languages (DSL). Main facility for achieving this is the desugaring of regular language constructs like conditionals, loops, variable declarations, return statements and equality comparisons to simple method calls. For example, \code{if (c) a else b} gets translated to an \code{__ifThenElse(c, a, b)} method call. In the case of regular language execution this method executes the logic of the conditional but in case of deeply embedded DSLs it is used for creation of  IR node that represents the \code{if} statement.  
 
 In Virtualized Scala, all embedded DSLs are written within DSL scopes. These special scopes look like method invocations that take one by name parameter. However, they get translated to the complete specification of DSL modules that are used in a form of a Scala trait mix-in composition\todo{put a star what is a mixin composition}. For example: 
 \code{stivoDSL\{ \\\\ dsl code \}} gets translated into:
@@ -13,7 +13,7 @@ In Virtualized Scala, all embedded DSLs are written within DSL scopes. These spe
    \\\\ dsl code
  \}
 \}} 
-This makes all the DSL functionality defined in StivoDSL visible in body of the by name parameter passed to stivo method. 
+This makes all the DSL functionality defined in StivoDSL visible in the body of the by name parameter passed to stivo method. 
 Although modified, Virtualized Scala is fully binary compatible with Scala and can use all existing libraries.  
 
 
@@ -22,57 +22,59 @@ Although modified, Virtualized Scala is fully binary compatible with Scala and c
 \label{subsec:lightweight-modular-staging}
 
 % lms basics 
-The base for the \tool project is the Lightweight Modular Staging (LMS) library \cite{rompf_lightweight_2010}. LMS utilizes facilities provided by Virtualized Scala to build a modular compiler infrastructure for developing staged DSLs. It represents types in a DSL with an polymorphic abstract data type \code{Rep[T]}. The term, inside a DSL scope, that has a type \code{Rep[T]} declares that once the code is staged, optimized and generated the actual result of the term will have type \code{T}.  Since \code{Rep[T]} is and abstract type each DSL module can specify concrete operations on it which are used for simple building of the DSL intermediate representation. 
+The base for the \tool project is the Lightweight Modular Staging (LMS) library \cite{rompf_lightweight_2010}. LMS utilizes facilities provided by Virtualized Scala to build a modular compiler infrastructure for developing staged DSLs. It represents types in a DSL with an polymorphic abstract data type \code{Rep[T]}. The term, inside a DSL scope, that has a type \code{Rep[T]} declares that once the code is staged, optimized and generated the actual result of the term will have type \code{T}.  Since \code{Rep[T]} is an abstract type each DSL module can specify concrete operations on it which are used for building the DSL intermediate representation. 
 
-Since Scala's type system supports type inference, most of the \code{Rep[T]} types are hidden from the DSL user. This makes the DSL code free of type information and makes the user almost unaware of the \code{Rep} types. The only exception for visibility of \code{Rep} types are the parameters of methods and fields of defined classes. In our experience with writing DSLs, \code{Rep} types do not present a problem but gathering precise and unbiased information on this topic is very difficult.  
+Since Scala's type system supports type inference and implicit conversions, most of the \code{Rep[T]} types are hidden from the DSL user. This makes the DSL code free of type information and makes the user almost unaware of the \code{Rep} types. The only exception for visibility of \code{Rep} types are the parameters of methods and fields of defined classes. In our experience with writing DSLs, \code{Rep} types do not present a problem but gathering precise and unbiased information on this topic is very difficult.  
 
 % modularity through scalable components abstraction.
-Modular design of LMS allows the DSL developer to arbitrary compose the interface, optimizations and code generation of the DSL. Since LMS provides modules for large part of the Scala language and most common libraries if the DSL developer decides to include all the modules, the language will be very general and similar to the native Scala language. Module inclusion is simply done by mixing in Scala traits together. The correctness of the composition are checked by the type system and missing dependencies are caught by the type checking system. Code generation for a DSL is also modular so actual module for a single DSL is usually very thin since it reuses other modules in the library.
+Modular design of LMS allows the DSL developer to arbitrarily compose the interface, optimizations and code generation of the DSL. LMS provides implementations for most constructs of the Scala language and the most common libraries, so that the DSL can be very close to normal Scala if the DSL developer chooses to includes all of these. Module inclusion is simply done by mixing Scala traits together. The correctness of the composition is checked by the type system and missing dependencies are caught by the type checking system. Code generation for a DSL is also modular, so the effort is almost completely spent on domain specific aspects.
 
 % LMS effects
-Unlike Scala, which does not have an effects tracking mechanism, LMS provides precise type of the effect for each available operation. The effects of operations are expects the DSL developer to explicitly specify exact effects for each DSL operation. LMS effect tracking system than calculates the effects summary for each basic block in the DSL code. This allows the optimizer to apply code motion operations on the pure (side effect free) parts of the code and remove constant expressions out of hot loops as well as other compiler optimizations that require code motion. The framework provides effects tracking for numerical operations and all basic language constructs, but all other effects are up to the DSL developer. Although, it is hard for the DSL developer to specify effects for each operation the overall performance gain is significant. Also, due to LMS modularity the effects for most commonly used facilities like strings, arrays, loops and conditionals are completely reusable. 
+Unlike Scala, which does not have an effects tracking mechanism, LMS provides precise information about the effect for each available operation. The DSL developer needs to explicitly specify the effects for each DSL operation he introduces. The LMS effect tracking system then calculates the effects summary for each basic block in the DSL code. This allows the optimizer to apply code motion on the pure (side effect free) parts of the code \todo{Gets repeated afterwards again, sort of}. All implementations for standard library constructs that LMS provides such as strings, arrays, loops and conditionals, already include effect tracking.
 
 % workflow + shallow embedding 
-After building the complete intermediate representation LMS optimizes the code. Then the code generation layer produces code code for each IR and generates new optimized version of the code. This code is after compilation invoked in the place of the DSL scope to produce real values instead of value representation. In case DSL needs to be executed quickly (without compilation delay) it is possible to execute actual functionality of the method, thus achiveing shallow DSL embedding, instead of building the IR\todo{cite nada}. 
+LMS builds a complete intermediate representation of the code, optimizes it, and then generates optimized code for the chosen target language. The generated code has then to be compiled itself, and then it can be invoked. If the compilation delay is deemed inappropriate for a certain use case, it is possible to execute the code directly in Scala. A shallow DSL embedding can be achieved this way, instead of building the IR\todo{cite nada}.
+% Replaced with the above. After building the complete intermediate representation LMS optimizes the code. Then the code generation layer produces code for each IR and generates new optimized version of the code. This code is after compilation invoked in the place of the DSL scope to produce real values instead of value representation. In case DSL needs to be executed quickly (without compilation delay) it is possible to execute actual functionality of the method, thus achieving shallow DSL embedding, instead of building the IR\todo{cite nada}. 
  
-In the listing \ref{lst:println_dsl} we show a simplified version of a reusable DSL module for printing. In trait \code{PrintlnExp} we define how the \code{println} operation is linked to the abstract program representation. The \code{reflectEffect} method defines that the profile method has global side effects which signals the compiler that it can not be reordered with other global effects or moved out of the scope. In the \code{PrintlnGen} trait we define how the code for println is generated. 
+In the listing \ref{lst:println_dsl}, we show a simplified version of a reusable DSL module for printing. In trait \code{PrintlnExp} we define how the \code{println} operation is linked to the intermediate representation. The \code{reflectEffect} method defines that the profile method has global side effects which signals the compiler that it can not be reordered with respect to other globally effectful statements or be moved across control structures. In the \code{PrintlnGen} trait we define how the code for println is generated for Scala. 
 
 % println dsl 
-\begin{lstlisting}[name=code, caption=Example of how the DSL module is specified. Example module is used for profiling a block of code and it can be reused in any other Scala backed DSL. \scode{Rep} types., captionpos=b, label=lst:println_dsl, float=t]
-    // defines the IR block
+\begin{lstlisting}[name=code, caption=Example of how the DSL module is specified. The module is used for profiling a block of code and can be reused in any other Scala backed DSL. \scode{Rep} types., captionpos=b, label=lst:println_dsl, float=t]
+    // creates the println statement in the IR
     trait PrintlnExp extends BaseExp {
       def println[T](st: Rep[String]) =
-        reflectEffect(PrintlineNode(st)) 
+        reflectEffect(PrintlnNode(st)) 
     }
-    trait ProfileGen extends ScalaGen {
+    trait PrintlnGen extends ScalaGen {
        def emit(node: Rep[Any]) = node match {
            case PrintlnNode(str) =>
-              val strVal = emitValDef(str)  
-              println("println(str)")
+	      println("println("+str+")")
        }
     }
 \end{lstlisting}
 
 \subsection{BigData Frameworks}
 \todo {references to github?}
-\tool generates Scala code for Crunch, Scoobi and Spark. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a rather low level interface where the user must implement serialization for his classes. Scoobi on the other hand is a Scala framework, features a declarative high level interface and creates efficient serialization for user classes with only a minimal amount of help required. 
+\tool generates Scala code for Crunch, Scoobi and Spark. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a rather low level interface, in which the user must implement serialization for his classes himself. Scoobi on the other hand is a Scala framework, features a declarative high level interface and creates efficient serialization for user classes with only a minimal amount of help required. 
 
 % explicit caching, low latency interactive data querying 
-Spark is a recent execution engine and makes better use of the cluster's memory, and thus provides great speedups in iterative jobs which can reuse the same data multiple times over Hadoop. It also features a declarative high level interface and has support for multiple serialization frameworks. 
+Spark is a recent execution engine and makes better use of the cluster's memory, explicitly allowing the user to cache data. This allows huge speedups in iterative jobs which can reuse the same data multiple times, compared to Hadoop. It also features a declarative high level interface and has support for multiple serialization frameworks. It also features a shell for low latency interactive data querying.
 
 \subsection{LMS Optimizations}
 \label{sbusec:lms-optimizations}
 % common compiler optimizations
-When writing DSLs the developer can exploit the domain knowledge to apply high level optimizations and program transformations. After these are finished program is usually lowered to the representation closer to the actual code. LMS than provides a set of common optimizations that can be performed on the program. The optimizations that are applied are common subexpression elimination (CSE), dead code elimination (DCE), constant folding (CF) and function inlining. LMS also applies code motion which can either: \emph{i)} move independent and side effect free blocks out of hot loops \emph{ii)} move code segments are used inside conditionals but defined outside towards their use place.   
+When writing DSLs the developer can exploit the domain knowledge to apply high level optimizations and program transformations. After these are finished, the program is usually lowered to the representation closer to the actual generated code. LMS provides a set of common optimizations for the lowered code, which are: common subexpression elimination (CSE), dead code elimination (DCE), constant folding (CF) and function inlining. LMS also applies code motion which can either: \emph{i)} move independent and side effect free blocks out of hot loops \emph{ii)} move code segments that are used inside conditionals but defined outside closer to their use site.   
 
 % structures
-Another interesting optimization is transformation of array of structural types to structure of arrays (AoS -> SoA) each containing only primitive fields. This transformation removes unnecessary object creations and enables DCE to collect unused fields of an structure. It can be applied to built in data structures like tuples as well as immutable user defined types as well as nested types of data. It is similar in effect to row storage in databases and it gives great performance and memory footprint improvements. 
+Another interesting optimization is the transformation of an array of structural types to structure of arrays (AoS -> SoA), each containing only primitive fields. This transformation removes unnecessary constructor invocations and enables DCE to collect unused fields of an structure. It can be applied to built in data structures like tuples as well as immutable user defined types. It is similar in effect to row storage in databases and it gives great performance and memory footprint improvements.
 
 % loop fusion
-LMS also provides an very general mechanism for operation fusion. It uses loops with yield generators as the basic abstraction for fusion. It is revolutionary compared to other deforestation approaches since it generalizes to loops and can apply both vertical and horizontal fusion. In vertical fusion, algorithm searches for producer consumer dependencies among loops and then fuses loop bodies by putting body of one loop in the place of the yield generator of another loop. In horizontal fusion non-dependent loops of same shapes are fused together and index variables are relinked to the new on. Fusion greatly improves performance as it removes intermediate data structures and provides further opportunities for optimization.  
+LMS also provides a very general mechanism for operation fusion, which uses loops with yields as the basic abstraction. It is revolutionary compared to other deforestation approaches since it generalizes to loops and can apply both vertical and horizontal fusion. In vertical fusion, the algorithm searches for producer consumer dependencies among loops and then fuses their loop bodies by putting the body of one loop in the place of the yield of the other loop. In horizontal fusion, non-dependent loops of same shapes are fused together and index variables are relinked to the new one. Fusion greatly improves performance as it removes intermediate data structures and provides further opportunities for other optimization.
 
 % iteration until the fixed point is reached 
-All above mentioned algorithms are repeated for program scopes at one level until the fixed point is reached. Then the whole cycle is applied to the next level of scopes optimizing the whole program. In listing \ref{lst:step-by-step-lms} we present these optimizations on the single example of parsing a complex number and printing only real numbers among them. Step \ref{lst:original}) show the original program, \ref{lst:cse-inline}) shows how CSE extracts \code{size} and inlining replaces \code{parse} and \code{split} invocations with their bodies. In \ref{lst:aos-soa} the array \code{x} of complex numbers is split to two arrays of floating point. In \ref{lst:fusion-motion} we see how constant pattern is extracted out of the hot path, loops are fused allowing the parsing or real components to be moved into the conditional and intermediate arrays to be removed up by the DCE. 
+All above mentioned algorithms are repeated for program scopes at one level until the fixed point is reached. Then the whole cycle is applied to the next level of scopes optimizing the whole program. In listing \ref{lst:step-by-step-lms} we present these optimizations on a single example which parses a complex number and prints only the real parts of them. Step \ref{lst:original}) shows the original program, \ref{lst:cse-inline}) shows how CSE extracts \code{size} and inlining replaces \code{parse} and \code{split} invocations with their bodies. In \ref{lst:aos-soa} the array \code{x} of complex numbers is split into two arrays of floating points. 
+In \ref{lst:fusion-motion} the loops are fused together, which then allows code motion to move the constant pattern out of the loop and move the parsing of the real component into the conditional. The intermediate arrays can then be removed by DCE.
+%In \ref{lst:fusion-motion} we see how a constant pattern is extracted out of the hot path, how the loops are fused, allowing the parsing of real components to be moved into the conditional and intermediate arrays to be removed up by the DCE. 
 
 % example of LMS optimizations. Missing is DCE on unused fields.
 \begin{figure*}
@@ -96,12 +98,11 @@ All above mentioned algorithms are repeated for program scopes at one level unti
   \begin{subfigure}[b]{.5\linewidth}
     \begin{lstlisting}
         val size = input.size
-	val x = new Array[Complex](si.ze)
+	val x = new Array[Complex](size)
 	for (i <- 0 to size) {
    	  val pattern = new Pattern("\\s") 
 	  val sp = pattern.split(input(i))
-	  x(i) = Complex(
-	    Float(sp(0)), Float(sp(1))) 
+	  x(i) = Complex(Float(sp(0)), Float(sp(1))) 
 	}
 	for (i <- 0 to x.size) {
           if (x(i).im == 0) println(x(i).re) 
@@ -114,13 +115,13 @@ All above mentioned algorithms are repeated for program scopes at one level unti
         val size = input.size
 	val re = new Array[Float](size)
         val im = new Array[Float](size)
-	for (i <- 0 to input.size) {
+	for (i <- 0 to size) {
           val pattern = new Pattern("\\s") 
    	  val sp = pattern.split(input(i))
 	  re(i)  =  Float(sp(0)),
           im(i) = Float(sp(1)) 
 	}
-	for (i <- 0 to re.size) {
+	for (i <- 0 to size) {
           if (x(i).im == 0) println(x(i).re) 
        }
     \end{lstlisting}

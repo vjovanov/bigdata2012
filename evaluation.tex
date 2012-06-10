@@ -15,6 +15,29 @@ We were also getting unsatisfying numbers from our Scoobi backend, so we added C
 % Data Serialization
 For serialization of data we used LMS code generation to achieve minimal overhead for both Crunch and Scoobi frameworks. We used generated versions since they outperformed the Kryo framework by a thin margin. For Spark we used Kryo. All benchmarks were run three times and in the figures we present only the average. We also measured standard deviation but it is not displayed since it is smaller than 3\% of the job time in all experiments.
 
+\begin{figure}[!hbt]
+    \includegraphics[width=8.6cm]{figures/word-count}
+    \label{fig:word-count}\\%\vspace{10pt}
+   \caption{KMeans}
+\end{figure}
+
+\begin{figure}[!hbt]
+    \includegraphics[width=8.6cm]{figures/k-means}
+    \label{fig:k-means}\\%\vspace{10pt}
+   \caption{KMeans}
+\end{figure}
+
+\begin{figure}[!hbt]
+    \includegraphics[width=8.6cm]{figures/pig}
+    \label{fig:pig}\\%\vspace{10pt}
+   \caption{KMeans}
+\end{figure}
+
+\begin{figure}[!hbt]
+    \includegraphics[width=8.6cm]{figures/tpch}
+    \label{fig:tpch}\\%\vspace{10pt}
+   \caption{KMeans}
+\end{figure}
 
 % WordCount
 \subsection{Parsing and Word Count}
@@ -41,7 +64,8 @@ In figure \todo{\ref{}} we show job times for different optimizations normalized
 \subsection{Comparison with Pig}
 \label{subsec:pig}
 % Pig Comparison
-In figure \todo{\ref{}} we compare our most optimized versions of benchmarks to equivalent Pig programs. The figure is normalized to the Pig execution time and overall job time is stated above the bar. We notice that for TPCH query 12 the combination of fusion, code motion and field reduction outperform Pig when Crunch is used. For Crunch, the field reduction alone is not enough to outperform the Pig framework. We believe that this result is caused by more efficient join operation in Pig. In future work we will investigate the cause for this.
+
+In figure \todo{\ref{}} we compare most optimal versions of benchmarks to equivalent Pig programs. The figure is normalized to the Pig execution time and overall job time is stated above the bar. We notice that for TPCH query 12, combination of fusion, code motion and field reduction outperform Pig when the Crunch framework is used. For Crunch, field reduction alone is not enough to outperform the Pig framework. We believe that this result is caused by more efficient join operation in Pig. In future work we will investigate the cause for this.
 In the Word Count Crunch outperforms Pig even without any optimizations applied. With all optimizations the difference is significant. We explain this by the more optimal regular expressions processing support included in \tool. In regular expressions used in the benchmark Pig falls back to default Java regular expressions while \tool uses optimized automaton library. Scoobi framework performs slower than Pig in both benchmarks even with all optimizations applied.
 
 For the sake of showing comparison between the Hadoop based frameworks and the Spark framework we include the Spark results in the graph. We see that in all cases except for unoptimized TPCH query 12 it significantly outperforms Hadoop based frameworks. \todo{include or not?} Spark has a small advantage, as the user is required to copy the program to all machines before running it. Also the Hadoop frameworks need to submit two jobs for TPCH Q12, while spark can start 4 stages with very low latencies.

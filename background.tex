@@ -61,7 +61,7 @@ In the listing \ref{lst:println_dsl}, we show a simplified version of a reusable
 Spark is a recent execution engine and makes better use of the cluster's memory, explicitly allowing the user to cache data. This allows huge speedups in iterative jobs which can reuse the same data multiple times, compared to Hadoop. It also features a declarative high level interface and has support for multiple serialization frameworks. It also features a shell for low latency interactive data querying.
 
 \subsection{LMS Optimizations}
-\label{sbusec:lms-optimizations}
+\label{subsec:lms-optimizations}
 % common compiler optimizations
 When writing DSLs the developer can exploit the domain knowledge to apply high level optimizations and program transformations. After these are finished, the program is usually lowered to the representation closer to the actual generated code. LMS provides a set of common optimizations for the lowered code, which are: common subexpression elimination (CSE), dead code elimination (DCE), constant folding (CF) and function inlining. LMS also applies code motion which can either: \emph{i)} move independent and side effect free blocks out of hot loops \emph{ii)} move code segments that are used inside conditionals but defined outside closer to their use site.   
 

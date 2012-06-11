@@ -11,6 +11,7 @@ TEX_SRCS=\
 	related.tex \
 	conclusion.tex \
         vjovanov-lib.bib \
+        manual.bib \
 	acm_proc_article-sp.cls \
 #
 

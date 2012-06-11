@@ -25,7 +25,8 @@ Because \tool includes common compiler and relational optimizations, as well as 
 \tool makes following contributions to the state of the art:    
 \begin{itemize}
 
-  \item \todo{link generality to optimizations}We implement the \tool framework for big data processing. \tool has a slightly restricted and high level programming model but still applies relational, domain specific and compiler optimizations to achieve high performance.
+  \item We implement the \tool framework for big data processing. \tool has a high level programming model with a few restrictions to allow relational, domain specific and compiler optimizations to achieve high performance.
+%  \item \todo{link generality to optimizations}We implement the \tool framework for big data processing. \tool has a slightly restricted and high level programming model but still applies relational, domain specific and compiler optimizations to achieve high performance.
 
   \item We introduce a novel projection insertion algorithm that operates across general program constructs like classes, conditionals, loops and user defined functions, takes the whole program into account and does not rely on safe assumptions which lead to missed optimization opportunities.  
 
@@ -34,4 +35,5 @@ Because \tool includes common compiler and relational optimizations, as well as 
 \end{itemize} 
 
 % Sections
-In section \ref{sec:background} we will provide background on LMS, language virtualization and big data frameworks. Then, in section \ref{sec:programming-model} we explain the programming model and present simple program examples. Section \ref{sec:field-reduction} explains the novel projection insertion optimization algorithm. Section \ref{sec:fusion} explains the fusion optimization. We evaluate \tool in \ref{sec:evaluation} and present related work in section \ref{sec:related-work}. Discussion of our approach is presented in section \ref{sec:discussion}, future work in section \ref{sec:future-work} and conclusions in section \ref{sec:conclusion}.
+\todo{Decide on the sequence and update this part}
+In section \ref{sec:background} we will provide background on LMS, language virtualization and big data frameworks. Then, in section \ref{sec:programming-model} we explain the programming model and present simple program examples. In section \ref{sec:optimizations} we explain the the novel projection insertion optimization algorithm in section \ref{sec:field-reduction} and section \ref{sec:fusion} explains the fusion optimization. We evaluate \tool in \ref{sec:evaluation} and present related work in section \ref{sec:related-work}. Discussion of our approach is presented in section \ref{sec:discussion}, future work in section \ref{sec:future-work} and conclusions in section \ref{sec:conclusion}.

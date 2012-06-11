@@ -76,7 +76,7 @@
 % language virtualization
 \subsection{Virtualized Scala}
 \label{subsec:virtualized-scala}
-\tool is written in an experimental version of Scala called Virtualized Scala \cite{moors_scala-virtualized_2012} which provides facilities for deep embedding of domain specific languages (DSLs). Deep embedding is achieved by translating regular language constructs like conditionals, loops, variable declarations and pattern matching to regular method calls. For example, \code{if (c) a else b} gets translated to an \code{__ifThenElse(c, a, b)} method call. In the case of regular language execution, this method executes the logic of the conditional, but in case of deeply embedded DSLs it is used for creation of an intermediate representation (IR) node that represents the \code{if} statement.  
+\tool is written in an experimental version of Scala called Virtualized Scala \cite{moors_scala-virtualized_2012} which provides facilities for deep embedding of domain specific languages (DSLs). Deep embedding is achieved by translating regular language constructs like conditionals, loops, variable declarations and pattern matching to regular method calls. For example, for the code \code{if (c) a else b}, the condidtional is not executed but instead a method call is issued to a method \code{__ifThenElse(c, a, b)}. In the case of regular language execution, this method executes the logic of the conditional, but in case of deeply embedded DSLs it is used for creation of an intermediate representation (IR) node that represents the \code{if} statement.  
 
 In Virtualized Scala, all embedded DSLs are written within DSL scopes. These special scopes look like method invocations that take one by name parameter (block of Scala code). They get translated to the complete specification of DSL modules that are used in a form of a Scala trait mix-in composition\footnote[1]{Scala's support for multiple inheritance}. For example: 
 \code{stivoDSL\{ \\\\ dsl code \}} gets translated into:
@@ -122,6 +122,8 @@ LMS builds a complete intermediate representation of the code, optimizes it, and
 In listing \ref{lst:println_dsl}, we show a simplified version of a reusable DSL module for printing. In trait \code{PrintlnExp} we define how the \code{println} operation is linked to the intermediate representation. The \code{reflectEffect} method defines that the \code{profile} method has global side effects which signals the compiler that it can not be reordered with respect to other globally effectful statements or be moved across control structures. In the \code{PrintlnGen} trait, we define how the code for \code{println} is generated for Scala. 
 
 LMS has been used successfully by Brown et al. for heterogeneous parallel computing in project Delite \cite{brown_heterogeneous_2011}, Kossakowski et al. for a JavaScript DSL \cite{greg} and in the SIQ project for embedding queries into the Scala language.
+\\
+\\
 \subsection{Big Data Frameworks}
 \label{subsed:big-data-frameworks}
 \tool generates Scala code for Crunch \cite{crunch}, Scoobi \cite{scoobi} and Spark \cite{spark-nsdi}. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a rather low level interface, in which the user must provide implementation for user classes. Scoobi on the other hand is a Scala framework, which features a declarative high level interface and creates efficient serialization for user classes with only a minimal amount of help required. 

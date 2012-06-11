@@ -14,24 +14,20 @@ In the recent history there have been several solutions that try to make program
 % optimizations
 % modular/extensible
 % portable
-
+This paper presents a new domain specific language \tool for big data processing that provides a high level declarative interface similar to Dryad/LINQ and Spark. \tool builds upon language virtualization \cite{moors_scala-virtualized_2012} and lightweight modular staging \cite{rompf_lightweight_2010} (LMS) and has the same syntax and semantics as the regular Scala language with a few restrictions.
+Because \tool includes common compiler and relational optimizations, as well as domain specific ones, it produces very fast code. It is designed in a very modular way - the code generation is completely independent of the parsing and optimizations - and allows extensions for any part of it. \tool limits its set of operations to those that are available in the backends it generates code for, but it's extensibility allows to enable operations only available on a specific backend.
 % Our implementation
-This paper presents a new domain specific language \tool for big data processing that provides a high level declarative interface similar to Dryad/LINQ and Spark. \tool builds upon language virtualization \cite{moors_scala-virtualized_2012} and lightweight modular staging \cite{rompf_lightweight_2010} (LMS) to provide  a programming model with few restrictions.  that uses the runtime program structure to apply first modular framework specific optimizations and than common ones like code motion, loop fusion, projection optimization and inlining. Result is a highly optimized intermediate representation (IR) which is then used by a thin code generation layer to produce code for multiple big data back-end. Having common optimizations separated from code generation layer makes supporting new backends  easy. This makes the user code easily portable between frameworks and their versions. 
+%This paper presents a new domain specific language \tool for big data processing that provides a high level declarative interface similar to Dryad/LINQ and Spark. \tool builds upon language virtualization \cite{moors_scala-virtualized_2012} and lightweight modular staging \cite{rompf_lightweight_2010} (LMS) to provide  a programming model with few restrictions.  that uses the runtime program structure to apply first modular framework specific optimizations and than common ones like code motion, loop fusion, projection optimization and inlining. Result is a highly optimized intermediate representation (IR) which is then used by a thin code generation layer to produce code for multiple big data back-end. Having common optimizations separated from code generation layer makes supporting new backends  easy. This makes the user code easily portable between frameworks and their versions. 
 
 %get runtime access to the program structure. LMS enforces explicit effects tracking and provides modules for majority of language constructs and often used libraries making \tool more general than Pig and SQL.
-
-\todo{Evaluation}We implemented back-ends for Spark, Scoobi \cite{nicta_scoobi_2012} and Crunch \cite{_crunch_2012} and code generation layers range from 270 to 425 lines of code in size. 
 
 % Contributions
 \tool makes following contributions to the state of the art:    
 \begin{itemize}
 
-
   \item \todo{link generality to optimizations}We implement the \tool framework for big data processing. \tool has a slightly restricted and high level programming model but still applies relational, domain specific and compiler optimizations to achieve high performance.
 
-
   \item We introduce a novel projection insertion algorithm that operates across general program constructs like classes, conditionals, loops and user defined functions, takes the whole program into account and does not rely on safe assumptions which lead to missed optimization opportunities.  
-
 
   \item We show that \tool allows easy language extension and code portability for big data frameworks. 
 

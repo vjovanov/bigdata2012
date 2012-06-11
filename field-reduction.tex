@@ -1,6 +1,6 @@
 \section{Optimizations}
 \label{sec:optimizations}
-In this section we present the main optimizations implemented in \tool.
+In this Section we present the main optimizations implemented in \tool.
 \subsection{Projection Insertion}
 \label{sec:field-reduction}
 
@@ -14,13 +14,13 @@ In \tool we support this optimization for algebraic data types, more specificall
 %\todo{Drop this sentence?}The generated code includes a parsing method, to which the user simply supplies a regular expression, in case the data is stored in text form. 
 
 % explaining the lingo and high level overview of the algorithm.
-In section \ref{subsec:lms-optimizations} we have shown how LMS optimizes these classes within the same program scope. However, in \tool we endorse a declarative programming model with many short functions - each having its own scope - as these are easier to read. Each operation in our API has an input type and an output type, and they may have a parameter accepting a closure. Operations are chained together to form a data flow graph without cycles. Since types support nesting, we need to define the live values between operations as the sequence of field dereferences respective to a type to access that value. This sequence of field dereferences we call a path, and to represent it we use the scala expression needed to access it on such a type. In figure \ref{fig:type_tree} we visualize the tree which contains all paths and fields for the nested type of t in the example code in \ref{lst:types}.
+In Section \ref{subsec:lms-optimizations} we have shown how LMS optimizes these classes within the same program scope. However, in \tool we endorse a declarative programming model with many short functions - each having its own scope - as these are easier to read. Each operation in our API has an input type and an output type, and they may have a parameter accepting a closure. Operations are chained together to form a data flow graph without cycles. Since types support nesting, we need to define the live values between operations as the sequence of field dereferences respective to a type to access that value. This sequence of field dereferences we call a path, and to represent it we use the scala expression needed to access it on such a type. In Figure \ref{fig:type_tree} we visualize the tree which contains all paths and fields for the nested type of t in the example code in \ref{lst:types}.
 
 For our projection insertion algorithm we need to analyze the paths on each edge of the data flow graph. We can only compute the paths for one operation when the union of all paths accessed by its successors have been already computed. For this reason we visit the graph in reverse topologically sorted order and process the operations one by one. When the successors of a node have all been processed and their paths have been propagated, that node can be analyzed to compile a list of paths it needs from its predecessors. The result of this analysis can then be used to insert projections before any operation which serializes objects or stores them in memory - we call them barriers - for example \code{cache}, \code{groupByKey} or \code{join}.
 
 \begin{figure}
 % \begin{subfigure}
-\begin{lstlisting}[name=code, caption=Nested type for paths example., captionpos=b, label=lst:types]
+\begin{lstlisting}[language=Scala,name=code, caption=Nested type for paths example., captionpos=b, label=lst:types]
 case class A(id: String, b: B)
 case class B(id: String)  
 val t = ("tuple", A("a", B("b"))) 
@@ -64,7 +64,6 @@ The algorithm depends on the analysis of a single operation, which we implemente
 
 For \code{map} operations which output a nested type we need to combine the narrow closure and the closure analysis primitive. AoS $\rightarrow$ SoA ensures that the output symbol of a closure is always a constructor invocation for these. We then use the narrow closure primitive to create a new closure, in which the output symbol reads from the old output symbol. LMS recognizes a field read that reads from a constructor invocation in the same scope and optimizes this by reading the value that was used to initialize the field directly. This happens for all the fields, if the corresponding constructor invocation is in the same scope. Therefore the old constructor invocation will not be read anymore, and DCE will pick it up. This means that the field values only it was reading will also not be read anymore, and they too will be eliminated. Then we can analyze this new closure to get the accessed paths from it. 
 
-
-Table \ref{table:field_reduction} shows how these primitives are combined to form the rules for the most important operations in our API.
+ Table \ref{table:field_reduction} shows how these primitives are combined to form the rules for the most important operations in our API.
 
  

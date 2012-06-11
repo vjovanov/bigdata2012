@@ -4,7 +4,7 @@
 % Scala and Spark and Collections like interface
 The basic abstraction in our programming model is the interface \scode{DList[T]}. \scode{DList[T]} represents a distributed collection of elements that have type \scode{S} which is a subtype of \scode{T}. The elements of a \scode{DList[T]} collection are immutable, so each operation on the list can only: \emph{i)} produce a new \scode{DList}, \emph{ii)} save it to persistent storage, \emph{iii)} materialize it on the master node or \emph{iv)} return an aggregate value. 
 
-% Operations and reference to the table. monadic operations, concat, partitionBy, cache, count returns the value
+% Operations and reference to the Table. monadic operations, concat, partitionBy, cache, count returns the value
 \code{DList} operations are presented in Table \ref{tbl:operations}. In the left column, we show which frameworks support which method. The middle column shows the method name. Finally, the right column contains the type of \code{DList} that the operation is called on, and return type of the operation.
 
 \begin{table*}[ht!]
@@ -38,7 +38,7 @@ Operations \code{DList()} and \code{save()} are used for loading and storing dat
 Some methods accept functions as their parameters. Code within these functions can be either written in the \tool DSL, or by using existing functions from an external library or common JVM libraries. Using JVM libraries requires just one extra line of code per method.  
 
 % Example word count application
-In listing \ref{lst:wordcount}, we show an implementation of a simple word count example, in which the code does not have any visible \code{Rep} types. Since a large subset of the Scala library is implemented as a DSL module, functions like \code{split} and string concatenation are used the same way as they are in Scala. In the second line, the regular (with arguments wrapped in \code{Rep}) method \code{parse} is passed to the \code{map} method. Pig and Hive do not have functions in their own language, but allow writing user defined functions in other languages which requires a considerable amount of boilerplate code.
+In Listing \ref{lst:wordcount}, we show an implementation of a simple word count example, in which the code does not have any visible \code{Rep} types. Since a large subset of the Scala library is implemented as a DSL module, functions like \code{split} and string concatenation are used the same way as they are in Scala. In the second line, the regular (with arguments wrapped in \code{Rep}) method \code{parse} is passed to the \code{map} method. Pig and Hive do not have functions in their own language, but allow writing user defined functions in other languages which requires a considerable amount of boilerplate code.
 
 % Word count showing generality, rep clean api.
 \begin{lstlisting}[name=code, caption=Example of word count program where type inference removes the need to declare any \scode{Rep} types., captionpos=b, label=lst:wordcount, float=t]

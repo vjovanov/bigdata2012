@@ -2,9 +2,9 @@
 \label{sec:evaluation}
 
 
-We evaluate \tool by implementing a word count program with prior text parsing, TPCH query 12 and a k-means application that uses array processing extension for \tool. \\
+We evaluate \tool by comparing the performance of three programs: A word count with prior text parsing, TPCH query 12 and a k-means application that uses an array processing extension for \tool. \\
 
-All experiments were performed on the Amazon EC2 Cloud, using 20 "m1.large" nodes as slaves and one as master. They each have 7.5 Gb of memory, 2 virtual cores with 2 EC2 compute units each, have 850 Gb of instance storage and provide high throughput. Prior to the experiments we have measured up to 50 MB/s between two nodes. For the Hadoop experiments we used current Clouderas Hadoop distribution cdh3u4. We used Crunch version 0.2.4 and Scoobi 0.4.0. For Spark we used the Mesos \todo{cite} EC2 script to start a cluster, and then used Spark version 048276799 for our tests. We did not tweak Hadoop configuration beyond the default settings. For Spark we changed the default parallelism level to the number of machines in the cluster and increased the available memory to 6GB. 
+All experiments were performed on the Amazon EC2 Cloud, using 20 "m1.large" nodes as slaves and one as master. They each have 7.5 Gb of memory, 2 virtual cores with 2 EC2 compute units each, 850 Gb of instance storage and provide high network throughput. Prior to the experiments we have measured up to 50 MB/s between two nodes. For the Hadoop experiments we used current Clouderas Hadoop distribution cdh3u4. We used Crunch version 0.2.4 and Scoobi 0.4.0. For Spark we used the Mesos \todo{cite} EC2 script to start a cluster, and then used Spark version 048276799 for our tests. We did not tweak Hadoop configuration beyond the default settings. For Spark we changed the default parallelism level to the number of machines in the cluster and increased the available memory to 6GB. 
 
 \todo{Maybe move regex to optimizations}
 % Regular expressions

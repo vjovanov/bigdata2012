@@ -3,7 +3,7 @@
 
 
 % Generality of our approach
-The language we provide is same as Scala in its basic constructs, however it does not support all of the functionalities. The following functionalities are not available:  
+The language we provide is the same as Scala in its basic constructs, however it does not support all of the functionalities. The following functionalities are not available:  
 \begin{itemize}
 \item Projection optimization can only be applied to final immutable classes. This somewhat limits the language, but in large big data processing, data records are often not polymorphic. 
 \item Polymorphism is supported only in a limited form. The limitation is that all possible implementations need to be known at staging time\todo{is this true?}.
@@ -14,17 +14,16 @@ The language we provide is same as Scala in its basic constructs, however it doe
 
 
 % Code compilation and generation vs interactivity
-One of the caveats of the staged DSL approach is that the program staging, compilation, generation and again compilation increases the startup time for the task. For the benchmarks we have evaluated the whole process takes from \todo{5 - 50}. Although this can be significant this process is done only once, on a single machine so we believe it is not a limiting factor for batch jobs.
+One of the caveats of the staged DSL approach is that the program staging, compilation, generation and again compilation increases the startup time for the task. For the benchmarks we have evaluated the whole process takes from 4 to 14 seconds. Although this can be significant this process is done only once on a single machine so we believe it is not a limiting factor for batch jobs.
 
-Only case when compile time is of relevance is with back-ends that support interactive data analytics, like the Spark framework. Compilation times longer than couple of seconds would present a problem in these cases and affect the interactivity. 
+The only case in which compile time is of relevance is with back-ends that support interactive data analytics, like the Spark framework. Compilation times longer than a couple of seconds would present a problem in these cases and affect the interactivity. 
 
 We see two ways to overcome issues with delay in execution:
 \begin{itemize}
-\item We can implement a version which does not generate the IR, but executes the original code straight away. In this case all optimizations described in chapter would be disabled but the user would gain original Spark interactivity. This feature is not implemented but Amin at al. \todo{cite nada} have done this for the Javascript DSL. This approach disables all optimizations.
+\item We can implement a version which does not generate the IR, but executes the original code straight away. In this case all optimizations we perform would be disabled but the user would gain original Spark interactivity. This feature is not implemented but Amin at al. \todo{cite nada} have done this for the Javascript DSL.
 
-\item If optimizations are required,  we can build and optimize the intermediate representation after each user input. This gives the compiler time to do the work while the last command is being typed. The overall delay in this case the delay would be $delay = IR\_building - user\_delay) + generated\_code\_compilation$. Since we did not optimize the compiler and do not have data about time it takes to do interactive commands we can not speculate the final result.
+\item If optimizations are required,  we can build and optimize the intermediate representation after each user input. This gives the compiler time to do the work while the last command is being typed. The overall delay in this case the delay would be $delay = IR\_building - user\_delay) + generated\_code\_compilation$. Since we did not optimize the compiler and do not have data about the time it takes to do interactive commands we can not speculate on the final result.
 \end{itemize}
 
-
 % Job specific tuning 
-Each job requires a framework specific configuration for its optimal execution (number of mappers, reducers, buffer sizes etc.). With the current programming model it is not possible to tune these parameters in a unified way. Although this is currently a limitation, we plan to introduce a configuration part of the DSL which will be very loose in requirements (json or XML) and generate back-end specific configurations. Other option would be to introduce fixed coarse grain parameters (eg. low, medium and high) in \tool and than generate code specific to the framework used. Although the first approach makes the code less portable we are leaning towards it since it allows finer tuning of jobs.  
+Each job requires a framework specific configuration for its optimal execution (number of mappers, reducers, buffer sizes etc.). With the current programming model it is not possible to tune these parameters in a unified way. Although this is currently a limitation, we plan to introduce a configuration part of the DSL which will be very loose in requirements (json or XML) and generate back-end specific configurations. Another option would be to introduce fixed coarse grain parameters (eg. low, medium and high) in \tool and then generate code specific to the framework used. Although the first approach makes the code less portable we are leaning towards it since it allows finer tuning of jobs.

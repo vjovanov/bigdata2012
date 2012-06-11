@@ -18,17 +18,16 @@ Some methods accept functions as their parameters. Code within these functions c
 Framework  & Operation & Transformation\\ \hline
 
 \multirow{12}{*}{All}		       		& \scode{DList(uri: Rep[String])}      				& \scode{String => DList[T]}\\ %\cline{2-3}
-								& \scode{save(f: Rep[String])}      				        & \scode{DList[T] => Unit}\\ %\cline{2-3}
+								& \scode{save(uri: Rep[String])}      				        & \scode{DList[T] => Unit}\\ %\cline{2-3}
 								& \scode{map(f: Rep[T] => Rep[U])}      				& \scode{DList[T] => DList[U]}\\ %\cline{2-3}
 								& \scode{filter(f: Rep[T] => Rep[Boolean])}			& \scode{DList[T] => DList[T]}\\ %\cline{2-3}
 								& \scode{flatMap(f: Rep[T] => Rep[Iter[U]])}		        & \scode{DList[T] => DList[U]}\\ %\cline{2-3}
 								& \scode{groupByKey()} 							& \scode{DList[(K, V)] => DList[(K, Iter[V])]}\\ %\cline{2-3} 
 								& \scode{reduce(f: (Rep[V], Rep[V]) => Rep[V])} 	        & \scode{DList[(K, Iter[V])] => DList[(K, V)]}\\ %\cline{2-3} 
-								& \scode{cogroup(n: Rep[DList[(K, W)]])} 			& \scode{DList[(K, V)] => DList[(K, (Iter[K], Iter[W]))]}\\ %\cline{2-3} 								
-								& \scode{join(n: Rep[DList[(K, W)]])} 				& \scode{DList[(K, V)] => DList[(K, (V, W))]}\\ %\cline{2-3} 
-								& \scode{cross(n: Rep[DList[U]])} 					& \scode{DList[T] => DList[(T, U)]}\\ %\cline{2-3} 								
-								& \scode{++(c: Rep[DList[T]])}			                & \scode{DList[T] => DList[T]]}\\ %%\cline{2-3}							
-								& \scode{partitionBy(n: Rep[Partitioner[T]])} 			& \scode{DList[T] => DList[T]}\\ %\cline{2-3} 
+								& \scode{cogroup(right: Rep[DList[(K, W)]])} 			& \scode{DList[(K, V)] => DList[(K, (Iter[K], Iter[W]))]}\\ %\cline{2-3} 								
+								& \scode{join(right: Rep[DList[(K, W)]])} 			& \scode{DList[(K, V)] => DList[(K, (V, W))]}\\ %\cline{2-3} 
+								& \scode{++(other: Rep[DList[T]])}		                & \scode{DList[T] => DList[T]]}\\ %%\cline{2-3}							
+								& \scode{partitionBy(p: Rep[Partitioner[T]])} 			& \scode{DList[T] => DList[T]}\\ %\cline{2-3} 
 								& \scode{takeSample(p: Rep[Double])} 					& \scode{DList[T] => Seq[T]}\\ \hline
 \multirow{2}{*}{Spark}			        & \scode{cache()} 								& \scode{DList[T] => DList[T]}\\ %\cline{2-3} 
 								& \scode{sort(cmp: Rep[Comparator[T]])}			& \scode{DList[T] => DList[T]}\\ \hline

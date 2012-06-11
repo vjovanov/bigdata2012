@@ -47,7 +47,8 @@ In this benchmark we evaluate the performance of \tool compiler optimizations wi
 Our input is a 62 GB set of plain text version of Freebase Wikipedia articles. Our regular expressions are used clean up articles from strings that are not text words. This benchmark does not benefit from projection insertion but we include it for the comparison with the Pig framework in subsection \ref{subsec:pig}.
 
 In figure \ref{fig:word-count} we show the job times for these versions normalized to the original program version. Performance improvements of all optimizations combined are from 29\% for Scoobi, 33\% for Crunch and 79\% for Spark. The base performance of the frameworks differ by a large margin for this benchmark. Scoobi profits the most in this case from the fusion which indicates that the framework imposes additional overhead for declarative operations. In Spark, we notice larger benefits from our optimizations. We argue that it has significantly smaller IO overhead so that the optimizations have a bigger impact. Also, we notice that fusion optimization with projection insertion is slower than the original program for Spark. This result does not match our experiments in a smaller cluster setup, we believe that it could be caused by a straggler node in the cloud environment.
-
+\\
+\\
 % TPCH q12
 \subsection{TPCH Query 12}
 \label{subsec:tpch-query-12}

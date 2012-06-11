@@ -134,21 +134,6 @@
 	file = {ScalaReference.pdf:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/UJXECPXM/ScalaReference.pdf:application/pdf}
 },
 
-@article{jahani_automatic_2011-1,
-	title = {Automatic optimization for {MapReduce} programs},
-	volume = {4},
-	issn = {2150-8097},
-	url = {http://dl.acm.org/citation.cfm?id=1978665.1978670},
-	abstract = {The {MapReduce} distributed programming framework has become popular, despite evidence that current implementations are inefficient, requiring far more hardware than a traditional relational databases to complete similar tasks. {MapReduce} jobs are amenable to many traditional database query optimizations {(B+Trees} for selections, column-store-style techniques for projections, etc), but existing systems do not apply them, substantially because free-form user code obscures the true data operation being performed. For example, a selection in {SQL} is easily detected, but a selection in a {MapReduce} program is embedded in Java code along with lots of other program logic. We could ask the programmer to provide explicit hints about the program's data semantics, but one of {MapReduce's} attractions is precisely that it does not ask the user for such information. This paper covers Manimal, which automatically analyzes {MapReduce} programs and applies appropriate data-aware optimizations, thereby requiring no additional help at all from the programmer. We show that Manimal successfully detects optimization opportunities across a range of data operations, and that it yields speedups of up to 1,121\% on previously-written {MapReduce} programs.},
-	number = {6},
-	journal = {Proc. {VLDB} Endow.},
-	author = {Jahani, Eaman and Cafarella, Michael J. and Ré, Christopher},
-	month = mar,
-	year = {2011},
-	pages = {385–396},
-	file = {ACM Full Text PDF:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/URURFG8K/Jahani et al. - 2011 - Automatic optimization for MapReduce programs.pdf:application/pdf}
-},
-
 @inproceedings{koch_incremental_2010,
 	title = {Incremental query evaluation in a ring of databases},
 	booktitle = {Proceedings of the twenty-ninth {ACM} {SIGMOD-SIGACT-SIGART} symposium on Principles of database systems of data},
@@ -184,24 +169,6 @@
 	year = {2010},
 	pages = {10},
 	file = {a10-cafarella (1).pdf:/home/vjovanov/Downloads/a10-cafarella (1).pdf:application/pdf;[PDF] from umich.edu:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/J3PMR7M4/Cafarella and Ré - 2010 - Manimal Relational optimization for data-intensiv.pdf:application/pdf;Snapshot:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/XQQQCU4D/citation.html:text/html}
-},
-
-@inproceedings{iu_hadooptosql:_2010,
-	address = {New York, {NY}, {USA}},
-	series = {{EuroSys} '10},
-	title = {{HadoopToSQL:} a {mapReduce} query optimizer},
-	isbn = {978-1-60558-577-2},
-	shorttitle = {{HadoopToSQL}},
-	url = {http://doi.acm.org/10.1145/1755913.1755939},
-	doi = {10.1145/1755913.1755939},
-	abstract = {{MapReduce} is a cost-effective way to achieve scalable performance for many log-processing workloads. These workloads typically process their entire dataset. {MapReduce} can be inefficient, however, when handling business-oriented workloads, especially when these workloads access only a subset of the data. {HadoopToSQL} seeks to improve {MapReduce} performance for the latter class of workloads by transforming {MapReduce} queries to use the indexing, aggregation and grouping features provided by {SQL} databases. It statically analyzes the computation performed by the {MapReduce} queries. The static analysis uses symbolic execution to derive preconditions and postconditions for the map and reduce functions. It then uses this information either to generate input restrictions, which avoid scanning the entire dataset, or to generate equivalent {SQL} queries, which take advantage of {SQL} grouping and aggregation features. We demonstrate the performance of {MapReduce} queries, when optimized by {HadoopToSQL}, by both single-node and cluster experiments. {HadoopToSQL} always improves performance over {MapReduce} and approximates that of hand-written {SQL.}},
-	booktitle = {Proceedings of the 5th European conference on Computer systems},
-	publisher = {{ACM}},
-	author = {Iu, {Ming-Yee} and Zwaenepoel, Willy},
-	year = {2010},
-	keywords = {mapreduce, query optimization, sql, symbolic execution},
-	pages = {251–264},
-	file = {ACM Full Text PDF:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/RG88WN95/Iu and Zwaenepoel - 2010 - HadoopToSQL a mapReduce query optimizer.pdf:application/pdf}
 },
 
 @inproceedings{pavlo_comparison_2009,
@@ -272,16 +239,6 @@
 	file = {Google Scholar Linked Page:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/MSKWWCHH/citation.html:text/html;sawzall-sciprog (1).pdf:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/KFFRIS48/sawzall-sciprog (1).pdf:application/pdf}
 },
 
-@inproceedings{iu_hadooptosql:_2010-1,
-	title = {{HadoopToSQL:} a mapreduce query optimizer},
-	shorttitle = {{HadoopToSQL}},
-	booktitle = {Proceedings of the 5th European conference on Computer systems},
-	author = {Iu, M. Y and Zwaenepoel, W.},
-	year = {2010},
-	pages = {251–264},
-	file = {Snapshot:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/MVSM2G5F/citation.html:text/html}
-},
-
 @inproceedings{warneke_nephele:_2009,
 	title = {Nephele: efficient parallel data processing in the cloud},
 	shorttitle = {Nephele},
@@ -305,6 +262,15 @@
 	year = {2008},
 	pages = {1–14},
 	file = {Google Scholar Linked Page:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/U4P8CQN3/citation.html:text/html}
+},
+
+@inproceedings{hindman_mesos:_2011,
+	title = {Mesos: A platform for fine-grained resource sharing in the data center},
+	shorttitle = {Mesos},
+	booktitle = {Proceedings of {NSDI}},
+	author = {Hindman, B. and Konwinski, A. and Zaharia, M. and Ghodsi, A. and Joseph, A. D and Katz, R. and Shenker, S. and Stoica, I.},
+	year = {2011},
+	file = {[PDF] from usenix.org:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/TNPQEDJ5/Hindman et al. - 2011 - Mesos A platform for fine-grained resource sharin.pdf:application/pdf}
 },
 
 @inproceedings{battre_nephele/pacts:_2010,
@@ -392,7 +358,7 @@
 	file = {Lambda-Calculus and Combinators.pdf:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/GZWITAMA/Lambda-Calculus and Combinators.pdf:application/pdf}
 },
 
-@inproceedings{iu_hadooptosql:_2010-2,
+@inproceedings{iu_hadooptosql:_2010,
 	address = {New York, {NY}, {USA}},
 	series = {{EuroSys} '10},
 	title = {{HadoopToSQL:} a {mapReduce} query optimizer},
@@ -513,6 +479,11 @@
 	file = {Google Scholar Linked Page:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/UC9XTVHU/citation.html:text/html}
 },
 
+@misc{_dbgen_????,
+	title = {{DbGen}},
+	url = {http://dbgen.sourceforge.net/}
+},
+
 @misc{_scala_????-1,
 	title = {Scala benchmarking},
 	file = {res068-sewe.pdf:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/CT6FGMDD/res068-sewe.pdf:application/pdf}
@@ -564,16 +535,6 @@
 	month = nov,
 	year = {2008},
 	file = {Programming in Scala.pdf:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/S3RUZJGR/Programming in Scala.pdf:application/pdf}
-},
-
-@inproceedings{warneke_nephele:_2009-1,
-	title = {Nephele: efficient parallel data processing in the cloud},
-	shorttitle = {Nephele},
-	booktitle = {Proceedings of the 2nd Workshop on {Many-Task} Computing on Grids and Supercomputers},
-	author = {Warneke, D. and Kao, O.},
-	year = {2009},
-	pages = {8},
-	file = {Google Scholar Linked Page:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/US7FGASU/citation.html:text/html}
 },
 
 @inproceedings{meijer_linq_2006,
@@ -787,16 +748,6 @@
 	year = {2010},
 	pages = {363–375},
 	file = {Google Scholar Linked Page:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/79FI98FU/citation.html:text/html;p363-chambers (1).pdf:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/NPVH3QRT/p363-chambers (1).pdf:application/pdf}
-},
-
-@inproceedings{battre_nephele/pacts:_2010-1,
-	title = {{Nephele/PACTs:} a programming model and execution framework for web-scale analytical processing},
-	shorttitle = {{Nephele/PACTs}},
-	booktitle = {Proceedings of the 1st {ACM} symposium on Cloud computing},
-	author = {Battré, D. and Ewen, S. and Hueske, F. and Kao, O. and Markl, V. and Warneke, D.},
-	year = {2010},
-	pages = {119–130},
-	file = {Google Scholar Linked Page:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/6P2K4PUB/citation.html:text/html}
 },
 
 @inproceedings{olston_pig_2008-1,

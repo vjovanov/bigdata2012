@@ -4,15 +4,11 @@
 % language virtualization
 \subsection{Virtualized Scala}
 \label{subsec:virtualized-scala}
-\tool is written in an experimental version of Scala called Virtualized Scala \cite{sv}. Virtualized Scala provides facilities for deep embedding of domain specific languages (DSL). Main facility for achieving this is the desugaring of regular language constructs like conditionals, loops, variable declarations, return statements and equality comparisons to simple method calls. For example, \code{if (c) a else b} gets translated to an \code{__ifThenElse(c, a, b)} method call. In the case of regular language execution this method executes the logic of the conditional but in case of deeply embedded DSLs it is used for creation of  IR node that represents the \code{if} statement.  
+\tool is written in an experimental version of Scala called Virtualized Scala \cite{moors_scala-virtualized_2012} which provides facilities for deep embedding of domain specific languages (DSLs). Main facility for achieving the deep embedding is a translation of regular language constructs like conditionals, loops, variable declarations and pattern matching to regular method calls. For example, \code{if (c) a else b} gets translated to an \code{__ifThenElse(c, a, b)} method call. In the case of regular language execution this method executes the logic of the conditional but in case of deeply embedded DSLs it is used for creation of IR node that represents the \code{if} statement.  
 
-In Virtualized Scala, all embedded DSLs are written within DSL scopes. These special scopes look like method invocations that take one by name parameter. However, they get translated to the complete specification of DSL modules that are used in a form of a Scala trait mix-in composition\todo{put a star what is a mixin composition}. For example: 
+In Virtualized Scala, all embedded DSLs are written within DSL scopes. These special scopes look like method invocations that take one by name parameter (block of Scala code). However, they get translated to the complete specification of DSL modules that are used in a form of a Scala trait mix-in composition\footnote[1]{Scala's support for multiple inheritance}. For example: 
 \code{stivoDSL\{ \\\\ dsl code \}} gets translated into:
-\scode{new StivoDSL \{
- def main()\{
-   \\\\ dsl code
- \}
-\}} 
+\scode{new StivoDSL \{ def main()\{...\}\}} 
 This makes all the DSL functionality defined in StivoDSL visible in the body of the by name parameter passed to stivo method. 
 Although modified, Virtualized Scala is fully binary compatible with Scala and can use all existing libraries.  
 
@@ -30,10 +26,10 @@ Since Scala's type system supports type inference and implicit conversions, most
 Modular design of LMS allows the DSL developer to arbitrarily compose the interface, optimizations and code generation of the DSL. LMS provides implementations for most constructs of the Scala language and the most common libraries, so that the DSL can be very close to normal Scala if the DSL developer chooses to includes all of these. Module inclusion is simply done by mixing Scala traits together. The correctness of the composition is checked by the type system and missing dependencies are caught by the type checking system. Code generation for a DSL is also modular, so the effort is almost completely spent on domain specific aspects.
 
 % LMS effects
-Unlike Scala, which does not have an effects tracking mechanism, LMS provides precise information about the effect for each available operation. The DSL developer needs to explicitly specify the effects for each DSL operation he introduces. The LMS effect tracking system then calculates the effects summary for each basic block in the DSL code. This allows the optimizer to apply code motion on the pure (side effect free) parts of the code \todo{Gets repeated afterwards again, sort of}. All implementations for standard library constructs that LMS provides such as strings, arrays, loops and conditionals, already include effect tracking.
+Unlike Scala, which does not have an effects tracking mechanism, LMS provides precise information about the effect for each available operation. The DSL developer needs to explicitly specify the effects for each DSL operation he introduces. The LMS effect tracking system then calculates the effects summary for each basic block in the DSL code. This allows the optimizer to apply code motion on the pure (side effect free) parts of the code. All implementations for standard library constructs that LMS provides such as strings, arrays, loops and conditionals, already include effect tracking.
 
 % workflow + shallow embedding 
-LMS builds a complete intermediate representation of the code, optimizes it, and then generates optimized code for the chosen target language. The generated code has then to be compiled itself, and then it can be invoked. If the compilation delay is deemed inappropriate for a certain use case, it is possible to execute the code directly in Scala. A shallow DSL embedding can be achieved this way, instead of building the IR\todo{cite nada}.
+LMS builds a complete intermediate representation of the code, optimizes it, and then generates optimized code for the chosen target language. The generated code has then to be compiled itself, and then it can be invoked. If the compilation delay is deemed inappropriate for a certain use case, it is possible to execute the code directly in Scala. A shallow DSL embedding can be achieved this way, instead of building the IR.
 % Replaced with the above. After building the complete intermediate representation LMS optimizes the code. Then the code generation layer produces code for each IR and generates new optimized version of the code. This code is after compilation invoked in the place of the DSL scope to produce real values instead of value representation. In case DSL needs to be executed quickly (without compilation delay) it is possible to execute actual functionality of the method, thus achieving shallow DSL embedding, instead of building the IR\todo{cite nada}. 
  
 In the listing \ref{lst:println_dsl}, we show a simplified version of a reusable DSL module for printing. In trait \code{PrintlnExp} we define how the \code{println} operation is linked to the intermediate representation. The \code{reflectEffect} method defines that the profile method has global side effects which signals the compiler that it can not be reordered with respect to other globally effectful statements or be moved across control structures. In the \code{PrintlnGen} trait we define how the code for println is generated for Scala. 
@@ -53,9 +49,9 @@ In the listing \ref{lst:println_dsl}, we show a simplified version of a reusable
     }
 \end{lstlisting}
 
-\subsection{BigData Frameworks}
-\todo {references to github?}
-\tool generates Scala code for Crunch, Scoobi and Spark. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a rather low level interface, in which the user must implement serialization for his classes himself. Scoobi on the other hand is a Scala framework, features a declarative high level interface and creates efficient serialization for user classes with only a minimal amount of help required. 
+\subsection{Big Data Frameworks}
+\label{subsed:big-data-frameworks}
+\tool generates Scala code for Crunch \cite{_crunch_2012}, Scoobi \cite{nicta_scoobi_2012} and Spark \cite{matei_spark_????}. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a rather low level interface, in which the user must implement serialization for his classes himself. Scoobi on the other hand is a Scala framework, features a declarative high level interface and creates efficient serialization for user classes with only a minimal amount of help required. 
 
 % explicit caching, low latency interactive data querying 
 Spark is a recent execution engine and makes better use of the cluster's memory, explicitly allowing the user to cache data. This allows huge speedups in iterative jobs which can reuse the same data multiple times, compared to Hadoop. It also features a declarative high level interface and has support for multiple serialization frameworks. It also features a shell for low latency interactive data querying.
@@ -137,7 +133,7 @@ In \ref{lst:fusion-motion} the loops are fused together, which then allows code 
  	  val im = Float(sp(1))
 	  if (im == 0)  {
 	    val re = Float(sp(2))
- 	    println(re) 
+ 	    println(re)
    	  }
 	}
     \end{lstlisting}

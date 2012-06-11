@@ -1,4 +1,4 @@
-\section{Operation Fusion}
+\subsection{Operation Fusion}
 \label{sec:fusion}
 
 In section \ref{sec:programming-model} we have shown that the \code{DList} provides declarative higher order operations. Anonymous functions passed to these operations do not share the same scope of variables. This reduces the number of opportunities for optimizations described in \ref{subsec:lms-optimizations}. Moreover, each piece of data needs to be read, passed to and returned from the higher order function. In both the push data-flow model and the pull model this enforces virtual method calls \cite{murray_steno:_2011} for each data record. To overcome this performance penalty we have implemented fusion of operations \code{map}, \code{flatMap} and \code{filter} through the underlying loop fusion algorithm described in section \ref{subsec:lms-optimizations}. 

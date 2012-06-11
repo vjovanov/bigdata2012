@@ -88,9 +88,10 @@ In \ref{lst:fusion-motion} the loops are fused together, which then allows code 
 	}
     \end{lstlisting}
     \caption{Original program}
+    \label{lst:original}
   \end{subfigure}
   \begin{subfigure}[b]{.5\linewidth}
-    \begin{lstlisting}[label=lst:cse-inline]
+    \begin{lstlisting}
         val size = input.size
 	val x = new Array[Complex](size)
 	for (i <- 0 to size) {
@@ -103,7 +104,7 @@ In \ref{lst:fusion-motion} the loops are fused together, which then allows code 
 	}
     \end{lstlisting}
     \caption{CSE and inlining} 
-    \label{lst:original}
+    \label{lst:cse-inline}
   \end{subfigure}
   \begin{subfigure}[b]{.5\linewidth}
     \begin{lstlisting}
@@ -120,8 +121,8 @@ In \ref{lst:fusion-motion} the loops are fused together, which then allows code 
           if (x(i).im == 0) println(x(i).re) 
        }
     \end{lstlisting}
-    \label{lst:aos-soa}
     \caption{AoS -> SoA}
+    \label{lst:aos-soa}
   \end{subfigure}
 \begin{subfigure}[b]{.5\linewidth}
     \begin{lstlisting}

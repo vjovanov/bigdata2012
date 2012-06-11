@@ -344,6 +344,15 @@
 	file = {Google Scholar Linked Page:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/DTA9MRGC/Warneke and Kao - 2011 - Exploiting Dynamic Resource Allocation for Efficie.pdf:application/pdf}
 },
 
+@article{buettner_dewdrop:_2011,
+	title = {Dewdrop: an energy-aware runtime for computational {RFID}},
+	shorttitle = {Dewdrop},
+	journal = {{NSDI} 2011},
+	author = {Buettner, M. and Greenstein, B. and Wetherall, D.},
+	year = {2011},
+	file = {[PDF] from usenix.org:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/G8IGPT5V/Buettner et al. - 2011 - Dewdrop an energy-aware runtime for computational.pdf:application/pdf}
+},
+
 @inproceedings{yu_distributed_2009,
 	title = {Distributed aggregation for data-parallel computing: interfaces and implementations},
 	shorttitle = {Distributed aggregation for data-parallel computing},
@@ -573,6 +582,45 @@
 	author = {Odersky, Martin and Spoon, Lex and Venners, Bill},
 	month = nov,
 	year = {2008},
+	annote = {Chapter 10. Composition and Inheritance
+
+ 
+
+ 
+
+ },
+	annote = {Chapter 11. Scala Class Hierarchy
+
+Base class of all Scala classes is Any which defines:
+
+final ==, final !=, {toString}, {hashCode} and equals
+
+Has subclasses {AnyVal} and {AnyRef} for primitive types and references respectively. {AnyVals} are automatically converted to primitive values by the compiler, have implicit conversion to their rich versions and to their alternative representations {(Char} -{\textgreater} Int).
+
+Null is subtype of all {AnyRefs} and has a singleton instance null
+
+Nothing is a subtype of every other type and it does not have and instance so it is used show abnormal termination (exceptions)},
+	annote = {Chapter 12. Traits
+
+Traits are a fundamental unit of code reuse. They are very similar to classes with two exceptions:
+
+    Traits can not have constructors
+    Super calls are dynamically bound
+
+Unlike java interfaces which intrinsically make a tradeoff between client side usability and interface implementers amount of boilerplate. Traits brake this barrier by having method implementation and fields provided. Good example would be {Ordered[T]} which requires only one method to be implemented but provides many ordering methods ({\textgreater}=, {\textless}=, {\textless}, {\textgreater} etc.)
+
+Dynamic super reference enables Stackable Modifications. Stacable Modifications are enabled by having traits that extend the abstract class and call the same method on super instance. The method in trait must be declared as abstract override. The order of stackable modifications is from left to right (the rightest  trait mixed in will be executed first).
+
+Stackable modifications are the nice way to implement the wrapper pattern.
+
+ 
+
+Multiple inheritance problems with Scala traits are resolved by linearizing types. {TODO}
+
+ 
+
+When to use traits
+},
 	file = {Programming in Scala.pdf:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/S3RUZJGR/Programming in Scala.pdf:application/pdf}
 },
 
@@ -646,6 +694,13 @@
 	year = {2008},
 	keywords = {Google Research, Large Scale Processing Frameworks},
 	pages = {107–113},
+	annote = {Problems with {MapReduce} {(Hadoop):}
+
+ 
+
+Long job startup time due to fault tolerance protocols.
+
+Map and reduce phase tied together},
 	file = {Google Scholar Linked Page:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/JXEATG5H/citation.html:text/html;p107-dean.pdf:/home/vjovanov/.zotero/zotero/fwqxvpuo.default/zotero/storage/SSM3BP55/p107-dean.pdf:application/pdf}
 },
 

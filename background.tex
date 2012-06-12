@@ -1,5 +1,6 @@
 \section{Background}
 \label{sec:background}
+In this section we explain language virtualization in Scala, Lightweight Modular Staging (LMS) library \cite{rompf_lightweight_2010, rompf_lightweight_2012}, optimizations in LMS and big data frameworks relevant for this project.
 % example of LMS optimizations. Missing is DCE on unused fields.
 \begin{figure*}
   \begin{subfigure}[b]{.5\linewidth}
@@ -90,7 +91,7 @@ Although modified, Virtualized Scala is fully binary compatible with Scala and c
 \label{subsec:lightweight-modular-staging}
 
 % lms basics 
-\tool is built upon the Lightweight Modular Staging (LMS) library \cite{rompf_lightweight_2010, rompf_lightweight_2012}. LMS utilizes facilities provided by Virtualized Scala to build a modular compiler infrastructure for developing staged DSLs. It represents types in a DSL with polymorphic abstract data type \code{Rep[T]}. A term inside a DSL scope that has a type \code{Rep[T]} declares that once the code is staged, optimized, and generated, the actual result of the term will have type \code{T}. Since \code{Rep[T]} is an abstract type, each DSL module can specify concrete operations on it, which are used for building the DSL's intermediate representation. 
+\tool is built upon the Lightweight Modular Staging (LMS) library. LMS utilizes facilities provided by Virtualized Scala to build a modular compiler infrastructure for developing staged DSLs. It represents types in a DSL with polymorphic abstract data type \code{Rep[T]}. A term inside a DSL scope that has a type \code{Rep[T]} declares that once the code is staged, optimized, and generated, the actual result of the term will have type \code{T}. Since \code{Rep[T]} is an abstract type, each DSL module can specify concrete operations on it, which are used for building the DSL's intermediate representation. 
 
 Since Scala's type system supports type inference and implicit conversions, most of the \code{Rep[T]} types are hidden from the DSL user. This makes the DSL code free of type information and makes the user almost unaware of the \code{Rep} types. The only situation where \code{Rep} types become are visible is in parameters of methods and fields of defined classes. In our experience writing DSLs, \code{Rep} types do not present a problem but gathering precise and unbiased information on this topic is very difficult.  
 
@@ -123,13 +124,6 @@ In Listing \ref{lst:println_dsl}, we show a simplified version of a reusable DSL
 
 LMS has been used successfully by Brown et al. for heterogeneous parallel computing in project Delite \cite{brown_heterogeneous_2011}, Kossakowski et al. for a JavaScript DSL \cite{greg} and in the SIQ project for embedding queries into the Scala language.
 
-\subsection{Big Data Frameworks}
-\label{subsed:big-data-frameworks}
-\tool generates Scala code for Crunch \cite{crunch}, Scoobi \cite{scoobi} and Spark \cite{spark-nsdi}. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a rather low level interface, in which the user must provide implementation for user classes. Scoobi on the other hand is a Scala framework, which features a declarative high level interface and creates efficient serialization for user classes with only a minimal amount of help required. 
-
-% explicit caching, low latency interactive data querying 
-Spark is a recent execution engine which makes better use of the cluster's memory, explicitly allowing the user to cache data. This allows huge speedups on iterative jobs which can reuse the same data multiple times, unlike with Hadoop. It also features a declarative high level interface and has support for multiple serialization frameworks and it also features a shell for low latency interactive data querying.
-
 \subsection{LMS Optimizations}
 \label{subsec:lms-optimizations}
 % common compiler optimizations
@@ -145,3 +139,9 @@ LMS also provides a very general mechanism for operation fusion that uses standa
 All the above mentioned algorithms are repeated for program scopes at one level until a fixed point is reached. Then the whole cycle is applied to the next level of scopes, thereby optimizing the whole program. In Listing \ref{lst:step-by-step-lms}, we present these optimizations on a single example which parses an array of complex numbers and prints only the real parts of them. Step \ref{lst:original}) shows the original program, \ref{lst:cse-inline}) shows how CSE extracts \code{size} and inlining replaces \code{parse} and \code{split} invocations with their bodies. In step \ref{lst:aos-soa}) the array \code{x} of complex numbers is split into two arrays of floating points. 
 In \ref{lst:fusion-motion}) the loops are fused together, which then allows code motion to move the constant pattern out of the loop and move the parsing of the real component into the conditional. The intermediate arrays can then be removed by DCE.
 
+\subsection{Big Data Frameworks}
+\label{subsed:big-data-frameworks}
+\tool generates Scala code for Crunch \cite{crunch}, Scoobi \cite{scoobi} and Spark \cite{spark-nsdi}. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a rather low level interface, in which the user must provide implementation for user classes. Scoobi on the other hand is a Scala framework, which features a declarative high level interface and creates efficient serialization for user classes with only a minimal amount of help required. 
+
+% explicit caching, low latency interactive data querying 
+Spark is a recent execution engine which makes better use of the cluster's memory, explicitly allowing the user to cache data. This allows huge speedups on iterative jobs which can reuse the same data multiple times, unlike with Hadoop. It also features a declarative high level interface and has support for multiple serialization frameworks and it also features a shell for low latency interactive data querying.

@@ -3,6 +3,7 @@
 In this Section we present the main optimizations implemented in \tool.
 \subsection{Projection Insertion}
 \label{sec:field-reduction}
+\newcommand{\aos}{AoS $\rightarrow$ SoA }
 
 % Intro/Motivation 
 A common optimization in data processing is to remove intermediate values early that are not needed in later phases of the computation. It has been implemented in relational databases for a long time, and has recently been added to the Pig framework. This optimization requires all field accesses in the program to be explicit. A library can provide this, but its usage is more intrusive than if the framework can use compiler support. 
@@ -10,14 +11,11 @@ A common optimization in data processing is to remove intermediate values early 
 % description of supported types
 In \tool we support this optimization for algebraic data types, more specifically final immutable Scala classes with a finite level of nesting. Our approach does not require special syntax or access operators and supports method declarations on data types just like methods of regular Scala classes. While implementing our benchmarks we found this to be a reasonably expressive model for big data programming. The DSL user needs to supply class declarations, from which we generate all the necessary code for its use in \tool. In these cases, LMS describes all field accesses explicitly and we can generate highly specialized code for these types serialization schemes for the backends we support.
 
+% Explain why our algorithm is so simple
+A projection insertion optimization needs to know about the liveness of all fields it can possibly remove. LMS provides this within a scope, by decomposing all control structures to multiple copies of it accessing each field separately. After DCE, all remaining fields are alive within that scope. For \tool, this is not enough, as we support operations in the data-flow graph, like \code{groupByKey}, for which we found no good way to decompose them. However, we can define a liveness analysis for each operation in our programming model. For operations that accept a closure, we can apply \aos inside that closure. For all operations in our API we identify rules on how this operation influences the liveness of fields. By performing this analysis on each node in reverse topologically sorted order and propagating the liveness information to its predecessors, we can perform removal of unused fields. On a distributed program, the removal of dead fields is especially important before an operation that requires network transport of an object or stores it in memory. We call such an operation a barrier, and insert a projection which only contain the live fields before. An additional projection may introduce cpu overhead without offering a benefit in case there is no constructor invocation in the previous scope. In these cases we simply do not insert a projection.
 
-% explaining the lingo and high level overview of the algorithm.
-In Section \ref{subsec:lms-optimizations} we have shown how LMS optimizes these classes within the same program scope. However, in \tool we endorse a declarative programming model with many short functions - each having its own scope - as these are easier to read. Each operation in our API has an input type and an output type, and they may have a parameter accepting a closure. Operations are chained together to form a data flow graph without cycles. /todo{more stuff to introduce}
-
-
-Since classes support nesting we, we need to define the live values between operations as the sequence of field dereferences respective to a type to access that value. This sequence of field dereferences we call a path, and to represent it we use the scala expression needed to access it on such a type. In Figure \ref{fig:type_tree} we visualize the tree which contains all paths and fields for the nested type of t in the example code in Listing \ref{lst:types}.
-
-For our projection insertion algorithm we need to analyze the paths on each edge in the data flow graph. We can only compute the paths for one operation when the union of all paths accessed by its successors have been already computed. For this reason we visit the graph in reverse topologically sorted order and process the operations one by one. When the successors of a node have all been processed and their paths have been propagated, that node can be analyzed to compile a list of paths it needs from its predecessors. The result of this analysis can then be used to insert projections before any operation which serializes objects or stores them in memory - we call them barriers - for example \code{cache}, \code{groupByKey} or \code{join}.
+%introduce paths
+Since we support nested classes, the nested fields of a class form a tree, and if a field in such a tree is alive, it requires liveness of all its ancestors. We call the path of a nested field to the root of the tree an access path, and represent it using a string. The Figure \ref{fig:type_tree} shows the tree of nested fields of the class Tuple2[String, A], given in Listing \ref{lst:types}. The labels of the nodes describe the class of that field, while the edge labels contains the field name. The access path to each nested field can be formed by concatenating the edge labels with dots in between. In the Figure, the access path for the field id in class B would be \code{_2.b.id}. For each edge in the data-flow graph our operations form we need to compute the set of access paths.
 
 \begin{figure}
 % \begin{subfigure}
@@ -31,40 +29,38 @@ t: scala.Tuple2[String, A]
 % \begin{subfigure}
 \centering
 \includegraphics[clip=true, width=0.95\columnwidth]{dot/access.png}
-\caption{Visualization of the nested type Tuple2[String, A]. The node labels are the types at that path, the edges describe one field dereference. The leafs are always primitive types, and the path to them is formed by concatenating the edge labels. An example path description is ``\_2.b.id''}
+\caption{Visualization of the tree of fields for class Tuple2[String, A]}
 \label{fig:type_tree}
 % \end{subfigure}
 \end{figure}
 
 % explaining the analysis
-
-The algorithm depends on the analysis of a single operation, which we implemented using following primitives:
+For each operation, we need to define how the access paths used by it are translated into the access paths it uses. For this analysis we used following primitives:
 \begin{itemize}
-\item \emph{All paths}: Given a type, this primitive creates paths for all the nested fields within. In Listing \ref{lst:types} a \code{DList.save()} with elements of type A returns the paths ${id, b, b.id}$. 
-\item \emph{Closure analysis}: This primitive returns a list of all paths accessed on an the closures input type.%in a closure that read (recursively) from the closure's input.
-\item \emph{Rewrite paths}: Several operations have defined semantics which influence the type and therefore the paths. For example, the \code{cache} operation will always have the same input and output type and is known to return the same instance, so all paths from it's successors must be propagated to its predecessors. The \code{groupByKey} operation on the other hand always reads all parts of the key, and has to rewrite all paths of the form \code{\_2.iterable.x} to \code{\_2.x}, as the \code{iterable} is introduced by the \code{groupBy} operation and does not mutate the values.
-\item \emph{Narrow closure}: Given a list accessed paths of an output type and a closure, this primitive replaces the closure's original output type with one that reads from it and creates a new object only containing the fields needed for later stages.
+\item \emph{Access paths for type}: Given a type, this primitive creates access paths for all the nested fields within. In Listing \ref{lst:types} a \code{DList.save()} with elements of type A returns the access paths ${id, b, b.id}$. 
+\item \emph{Closure analysis}: This primitive returns a list of all accses paths on an the closure's input type.
+\item \emph{Rewrite access paths}: Several operations have defined semantics which influence the type and therefore the access paths. For example, the \code{cache} operation will always have the same input and output type and is known to not change any fields, so all access paths from its successors must be propagated to its predecessors. The \code{groupByKey} operation on the other hand always reads all nested fields of the key, and has to rewrite all access paths of the form \code{\_2.iterable.x} to \code{\_2.x}, as the \code{iterable} is introduced by the \code{groupByKey} operation and does not change the values.
+\item \emph{Narrow closure}: Given a closure and the access paths its successors read from it, this primitive replaces the closure's original output with one that reads from it and creates a new output only containing the live fields.
 \end{itemize}
 
 \begin{table}[width=0.5\pagewidth, float=t]
 
     \begin{tabularx}{0.5\textwidth}{l|X|l}
-        Operation    & Propagate accessed paths 							     & Barrier \\ \hline
-        \code{filter}       & All of successor + closure reads                                                      & ~       \\ 
-        \code{flatMap}      & All of the closure with a replaced output                                             & ~       \\ 
-        \code{map}          & All of the closure with a replaced output                                             & ~       \\ 
-        \code{join}         & All paths for the key, rewrites accesses to values to the correct predecessor         & x       \\ 
-        \code{groupByKey}  & All paths for the key, rewrites accesses to the value's iterable to the value itself  & x       \\ 
-        \code{reduce}       & All accesses from the closure are translated to access of the value's iterable        & ~       \\ 
-        \code{save}         & All paths for input type           	                                             & ~       \\ 
+        Operation    & Propagate access paths 							     & Barrier \\ \hline
+        \code{filter}       & All access paths of successor + access paths of closure                                                      & ~       \\ 
+        \code{flatMap}      & Return closure analysis of narrowed closure                                             & ~       \\ 
+        \code{map}          & Return closure analysis of narrowed closure                                           & ~       \\ 
+        \code{join}         & Generates access paths all nested fields of the key, and propagates access paths to the values to the correct predecessor.    & x       \\ 
+        \code{groupByKey}   & Generates access paths all nested fields of the key, propagates the accesses to the value's iterable to the value itself  & x       \\ 
+        \code{reduce}       & All accesses from the closure are translated to accesses of the value's iterable and propagated        & ~       \\ 
+        \code{save}         & Generates all access paths for the input type           	                                             & ~       \\ 
     \end{tabularx}
     
     \caption{Access path computation and propagation for selected operations.}
     \label{table:field_reduction}
 \end{table}
 
-For \code{map} operations which output a nested type we need to combine the narrow closure and the closure analysis primitive. AoS $\rightarrow$ SoA ensures that the output symbol of a closure is always a constructor invocation for these. We then use the narrow closure primitive to create a new closure, in which the output symbol reads from the old output symbol. LMS recognizes a field read that reads from a constructor invocation in the same scope and optimizes this by reading the value that was used to initialize the field directly. This happens for all the fields, if the corresponding constructor invocation is in the same scope. Therefore the old constructor invocation will not be read anymore, and DCE will pick it up. This means that the field values only it was reading will also not be read anymore, and they too will be eliminated. Then we can analyze this new closure to get the accessed paths from it. 
+%make an example for map
+To analyze a \code{map} operation, we need to combine the narrow closure and the closure analysis primitive. \aos ensures that the output symbol of a closure is always a constructor invocation, if the output type is not primitive. We apply the narrow closure primitive to create a new closure, in which the output symbol reads from the old output symbol. LMS recognizes when a field read reads from a constructor invocation in the same scope, and instead of generating an access for a field, it returns that value directly. This happens for all the fields, therefore the old constructor invocation will not be read anymore, and DCE will pick it up. This means that the field values, which only it was reading, will also not be read anymore, and they too will be eliminated. When the closure has been cleand up like this, we can analyze this new closure to get the access paths from it. 
 
- Table \ref{table:field_reduction} shows how these primitives are combined to form the rules for the most important operations in our API.
-
- 
+Table \ref{table:field_reduction} shows further examples how these primitives are combined to form the rules for the most important operations in our API.

@@ -1,6 +1,10 @@
 \section{Evaluation}
 \label{sec:evaluation}
-
+\begin{figure}[t]
+    \includegraphics[width=8.6cm]{figures/word-count}
+   \caption{Word Count benchmark.}
+   \label{fig:word-count}%\vspace{10pt}
+\end{figure}
 We evaluate \tool optimizations by comparing the performance of three programs: \emph{i)} A word count with prior text parsing, \emph{ii)} TPCH \cite{tpch} query 12 and a  \emph{iii)} k-means application. To evaluate the extensibility of the framework we introduce a new DSL component that represents vectors in the k-means benchmark.
 
 All experiments were performed on the Amazon EC2 Cloud, using 20 "m1.large" nodes as slaves and one as a master. They each have 7.5 GB of memory, 2 virtual cores with 2 EC2 compute units each, 850 GB of instance storage distributed over 2 physical hard drives and have 1 Gb/s network interface. Prior to the experiments we have measured up to 50 MB/s between two nodes. For the Hadoop experiments we used the cdh3u4 Cloudera Hadoop distribution. On top of it we used Crunch version 0.2.4 and Scoobi 0.4.0. We did not tweak Hadoop configuration beyond the default settings set by the Whirr 0.7.1 \cite{whirr} tool. For benchmarking Spark we used the Mesos \cite{hindman_mesos:_2011} EC2 script to start a cluster, and the most recent version of Spark for our tests. For Spark we changed the default parallelism level to the number of cores in the cluster and increased the maximum memory to 6GB. 
@@ -14,29 +18,6 @@ For serialization of data we used LMS code generation to achieve minimal overhea
 
 We made the \tool code, as well as the generated code, available on \url{https://github.com/stivo/Distributed}.
 
-\begin{figure}
-    \includegraphics[width=8.6cm]{figures/word-count}
-   \caption{Word Count benchmark.}
-   \label{fig:word-count}%\vspace{10pt}
-\end{figure}
-
-\begin{figure}
-    \includegraphics[width=8.6cm]{figures/pig}
-   \caption{Comparison between Pig, Scoobi, Spark and Crunch.}
-   \label{fig:pig}%\vspace{10pt}
-\end{figure}
-
-\begin{figure}[h]
-    \includegraphics[width=8.6cm]{figures/tpch}
-
-   \caption{TPCH query 12 benchmark.}
-  \label{fig:tpch}%\vspace{10pt}    
-\end{figure}
-\begin{figure}[h]
-    \includegraphics[width=8.6cm]{figures/k-means}
-   \caption{K-means benchmark.}
-   \label{fig:k-means}%\vspace{10pt}
-\end{figure}
 
 % WordCount
 \subsection{Parsing and Word Count}
@@ -61,6 +42,22 @@ In this benchmark the optimizations interact with each other. The absolute perfo
 
 \subsection{Comparison with Pig}
 \label{subsec:pig}
+\begin{figure}[t]
+    \includegraphics[width=8.6cm]{figures/tpch}
+   \caption{TPCH query 12 benchmark.}
+  \label{fig:tpch}%\vspace{10pt}    
+\end{figure}
+\begin{figure}[t]
+    \includegraphics[width=8.6cm]{figures/pig}
+   \caption{Comparison between Pig, Scoobi, Spark and Crunch.}
+   \label{fig:pig}%\vspace{10pt}
+\end{figure}
+
+\begin{figure}[t]
+    \includegraphics[width=8.6cm]{figures/k-means}
+   \caption{K-means benchmark.}
+   \label{fig:k-means}%\vspace{10pt}
+\end{figure}
 
 % Pig Comparison
 In Figure \ref{fig:pig} we compare the most optimal versions of benchmarks to equivalent Pig programs. The y axis is normalized to the Pig execution time and overall job time is stated above the bar. We notice that for TPCH query 12 the combination of fusion, code motion and field reduction outperform Pig when the Crunch framework is used. 

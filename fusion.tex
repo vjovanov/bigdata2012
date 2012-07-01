@@ -1,62 +1,45 @@
 \subsection{Operation Fusion}
 \label{sec:fusion}
 
-In section \ref{sec:programming-model} we have shown that the \code{DList} provides declarative higher order operations. Anonymous functions passed to these operations do not share the same scope of variables. This reduces the number of opportunities for optimizations described in \ref{subsec:lms-optimizations}. Moreover, each piece of data needs to be read, passed to and returned from the higher order function. In both the push data-flow model and the pull model this enforces virtual method calls \cite{murray_steno:_2011} for each data record. To overcome this performance penalty we have implemented fusion of operations \code{map}, \code{flatMap} and \code{filter} through the underlying loop fusion algorithm described in section \ref{subsec:lms-optimizations}. 
+In Section \ref{sec:programming-model} we have shown that the \code{DList} provides declarative higher order operations. Closures passed to these operations do not share the same scope of variables. This reduces the number of opportunities for the optimizations described in Section \ref{subsec:lms-optimizations}. Moreover, each data record needs to be read, passed to and returned from the closure. In both the push and the pull data flow model this enforces expensive virtual method calls \cite{murray_steno:_2011} for each data record. To reduce the performance penalty we have implemented fusion of monadic operations \code{map}, \code{flatMap} and \code{filter} through the underlying loop fusion algorithm described in Section \ref{subsec:lms-optimizations}. 
 
-The loop fusion optimization described in section \ref{subsec:lms-optimizations} supports horizontal and vertical fusion of loops as well as fusion of nested loops. Also, it provides a very simple interface to the DSL developer for specifying loop dependencies and for writing fusable loops. We decided to extend the existing mechanism to the \code{DList} operations although they are not strictly loops. We could have taken the path of Murray et al. in project Steno \cite{murray_steno:_2011} by generating an intermediate language which can be used for simple fusion and code generation. Also, we could use the Coutts et al. \cite{coutts_stream_2007} approach of converting \code{DList} to streams and applying equational transformation to remove intermediate results. After implementing the algorithm by reusing loop fusion we are confident that it required significantly less effort than reimplementing existing approaches.
+The loop fusion optimization described in Section \ref{subsec:lms-optimizations} supports horizontal and vertical fusion of loops as well as fusion of nested loops. Also, it provides a very simple interface to the DSL developer for specifying loop dependencies and for writing fusible loops. We decided to extend the existing mechanism to the \code{DList} operations although they are not strictly loops. We could have taken the path of Murray et al. in project Steno \cite{murray_steno:_2011} by generating an intermediate language which can be used for simple fusion and code generation. Also, we could use the Coutts et al. \cite{coutts_stream_2007} approach of converting \code{DList} to streams and applying equational transformation to remove intermediate results. After implementing the algorithm by reusing loop fusion we are confident that it required significantly less effort than reimplementing existing approaches.
 
-Before fusion optimization, the program IR represents an almost one to one mapping to the operations in the programming model. Each operation is represented by the corresponding IR node which carries its data and control dependencies. On these IR nodes we first apply a lowering transformation which maps operations \code{map}, \code{flatMap} and \code{filter} to the corresponding loop representation. Described transformation is achieved by the program translation described in \ref{lst:lowering}. These rules introduce two new nodes: \emph{i)} $shape_dep$ that takes the place of the loop shape variable and carries the explicit information about its vertical predecessor and \emph{ii)} \code{$iterator_value$} that represents reading from an iterator of the preceding \code{DList}. The \code{yield} operation represents storing to the successor collection and is afterwards replaced by the bodies of fused loops.
+\begin{figure}[t]
+We define the set of program \code{DList} nodes as $D$.
 
-% \begin{figure}
-% \begin{lstlisting}
-% DList nodes: $N$  
-% Framework: $B = \{Spark, Scoobi, Crunch\}$ 
-% Functions ($b \in B \land n \in N$): 
-%   $multiple\_output(b) = b \ne Spark$
-%   $fusible\_op(b, n) = map(n, \_) \lor filter(n, \_) \lor flatMap(n, \_) $
-%   $fuse\_pred(b, n) = multiple\_output(b) \lor |succ(pred(n))| = 1$ 
-%   $fusible(b, n) = fusible\_op(b, succ(n)) \lor$
-%       $((fusible\_op(b, pred(n)) \land fuse\_pred(b, n))$
-% \end{lstlisting}
-% 
-% 
-% Lowering rules:
-% \begin{lstlisting}
-%          $b \in B$   $n \in N$     $fusible(b, n)$
-% \end{lstlisting} 
-% \vspace{-5pt}{\hspace{0mm}\rule{0.99\columnwidth}{0.25pt}}
-
-% \end{lstlisting} 
-% \begin{lstlisting}
-%          $b \in B$   $n \in N$     $fusible(b, n)$
-% \end{lstlisting} 
-% \vspace{-5pt}{\hspace{0mm}\rule{0.99\columnwidth}{0.25pt}}
-% \begin{lstlisting}
-
-% \end{lstlisting}
-% \begin{lstlisting}
-%          $b \in B$   $n \in N$     $fusible(b, n)$
-% \end{lstlisting} 
-% \vspace{-5pt}{\hspace{0mm}\rule{0.99\columnwidth}{0.25pt}}
-% \begin{lstlisting}
-
-\begin{lstlisting}[name=code, caption=Lowering transformations., captionpos=b, label=lst:lowering, float=t]
-$out = map(n, op) \rightarrow  loop(shape\_dep(n), \{$
-  $yield(out, op(iterator\_value(n))\\$
-$\})$
-$out = filter(map, op) \rightarrow loop(shape\_dep(n), \{$
-   $if (op(iterator\_value(in))$
-     $yield(out, iterator\_value(in)) $
-$\})$
-$out = in.flatMap(op) \rightarrow loop(shape\_dep(n), \{$
-  $w = op(iterator\_value(in))$
-  $loop(w.size) \{yield(out, w(i))\}$
-$\})$
+For $n \in D$:
+\begin{lstlisting} 
+  $pred(n)$ gives the predecessor of the node in $D$
+  $succ(n)$ returns a set of node successors in $D$
+  $prevent\_fusion(n) =  |succ(pred(n))| > 1$
 \end{lstlisting}
-% \caption{Lowering transformations.}
-% \end{figure}
 
+Lowering Transformations:
+\begin{lstlisting}
+  $out = map(in, op) \rightarrow  $
+    $loop(shape\_dep(in, prevent\_fusion(in)), index, \{$
+      $yield(out, op(iterator\_value(in))\\$
+    $\})$
+  $out = filter(map, op) \rightarrow$
+    $loop(shape\_dep(in, prevent\_fusion(in)), index, \{$
+      $if (op(iterator\_value(in))$
+	$yield(out, iterator\_value(in)) $
+    $\})$
+  $out = flatMap(in, op) \rightarrow$
+    $loop(shape\_dep(in, prevent\_fusion(in)), index, \{$
+      $w = op(iterator\_value(in))$
+      $loop(w.size, index, \{yield(out, w(index))\})$
+    $\})$
+\end{lstlisting}
+\caption{Operation lowering transformations.}
+\label{lst:lowering}
+\end{figure}
 
-After the lowering transformation the loop fusion is applied. It vertically fuses pairs of loops until a fixpoint is reached. In each fusion iteration all other LMS optimizations are applied as well. To avoid generating actual \code{while} loops we include a modified loop generation module for every back-end. This module emits the most general operation (equivalent of the Hadoop \code{Mapper} class) that the framework provides. With this approach we could also generate code directly for Hadoop MapReduce which would result in a single highly optimized loop per \code{Mapper}. After prototype experiments we concluded that the gain is not significant compared to using higher level back-ends. Therefore, as an alternative, we used Scoobi and Crunch.
+Before the fusion optimization, the program IR represents an almost one to one mapping to the operations in the programming model. Each monadic operation is represented by the corresponding IR node which carries its data and control dependencies and has one predecessor and one or more successors. On these IR nodes we first apply a lowering transformation, which translates monadic operations to their equivalent loop based representation. Described transformation is achieved by the program translation described in Listing \ref{lst:lowering}. These rules introduce two new IR nodes: \emph{i)} $shape\_dep(n, m)$ that carries the explicit information about its vertical predecessor $n$ and a $prevent\_fusion$ bit $m$, and \emph{ii)} \code{$iterator\_value$} that represents reading from an iterator of the preceding \code{DList}. $shape\_dep$ replaces the shape variable (e.g. \code{in.size}) of the loop IR node. The \emph{yield} operation represents storing to the successor collection and is used in the LMS fusion algorithm for correct merging of two loops.
 
-Unlike MapReduce based back-ends, Spark's design uses the pull data-flow model, implemented through iterators. Generating code for the pull data-flow model from the loop based (push data-flow) model proved to be non-trivial. After evaluating different types of queues and array buffers we have decided to buffer intermediate results in a 4 MB array.
+For the back-end frameworks that \tool supports, the fusion operation is not possible for all operations in the data flow graph. If one node has multiple successors, after fusion, it would form a loop that yields values to multiple \code{DList}s. This would be possible for Hadoop, as it supports multiple outputs in the \code{Map} phase but is not currently supported in Spark, Scoobi and Crunch. To prevent fusion of such loops we added the $prevent\_fusion$ bit to the $shape\_dep$ node. We also prevent horizontal fusion by making $shape\_dep$ nodes always different in comparison.  
+
+After the lowering transformation we apply the loop fusion optimization from LMS. It iteratively fuses pairs of loops for which the consumer does not have the $prevent\_fusion$ bit set until a fixed point is reached. In each fusion iteration all other LMS optimizations are applied as well. Afterwards, in the code generation layer for each back-end, we specify how to compile loops with $shape\_dep$ nodes to the most general operation (e.g. the Hadoop \code{Mapper} class) that the framework provides. With this approach we could also generate code directly for Hadoop MapReduce which would result in a single highly optimized loop per \code{Mapper}. However, after doing experiments we concluded that the gain is not significant compared to using higher level back-ends. Therefore, as an alternative, we used the frameworks Scoobi and Crunch.
+
+Unlike MapReduce based back-ends, Spark's design uses the pull data-flow model, implemented through iterators. Generating code for the pull data-flow model from the loop based model (push data-flow) proved to be non-trivial. After evaluating different types of queues and array buffers we have decided to buffer intermediate results in a 4 MB array.

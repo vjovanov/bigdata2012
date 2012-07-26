@@ -7,69 +7,70 @@ relevant for this paper.
 % example of LMS optimizations. Missing is DCE on unused fields.
 \begin{figure*}
   \begin{subfigure}[b]{.5\linewidth}
-    \begin{lstlisting}
-  	def parse(st: Rep[String]) = {               
-	  val sp = st.split("\\s")
-          Complex(Float(sp(0)), Float(sp(1)))
-	}
-	val x = new Array[Complex](input.size)
-	for (i <- 0 to input.size) {
-     	  x(i) = parse(input(i)) 
-	}
-	for (i <- 0 to x.size) {
-    	  if (x(i).im == 0) println(x(i).re) 
-	}
-    \end{lstlisting}
+\begin{lstlisting}
+def parse(st: Rep[String]) = {               
+  val sp = st.split("\\s")
+  Complex(Float(sp(0)), Float(sp(1)))
+}
+val x = new Array[Complex](input.size)
+for (i <- 0 to input.size) {
+  x(i) = parse(input(i)) 
+}
+for (i <- 0 to x.size) {
+  if (x(i).im == 0) println(x(i).re) 
+}
+\end{lstlisting}
     \caption{Original program}
     \label{lst:original}
   \end{subfigure}
   \begin{subfigure}[b]{.5\linewidth}
-    \begin{lstlisting}
-        val size = input.size
-	val x = new Array[Complex](size)
-	for (i <- 0 to size) {
-   	  val pattern = new Pattern("\\s") 
-	  val sp = pattern.split(input(i))
-	  x(i) = Complex(Float(sp(0)), Float(sp(1))) 
-	}
-	for (i <- 0 to x.size) {
-          if (x(i).im == 0) println(x(i).re) 
-	}
-    \end{lstlisting}
+\begin{lstlisting}
+val size = input.size
+val x = new Array[Complex](size)
+for (i <- 0 to size) {
+  val pattern = new Pattern("\\s") 
+  val sp = pattern.split(input(i))
+  x(i) = Complex(Float(sp(0)), Float(sp(1))) 
+}
+for (i <- 0 to x.size) {
+  if (x(i).im == 0) println(x(i).re) 
+}
+\end{lstlisting}
     \caption{CSE and inlining} 
     \label{lst:cse-inline}
   \end{subfigure}
   \begin{subfigure}[b]{.5\linewidth}
-    \begin{lstlisting}
-        val size = input.size
-	val re = new Array[Float](size)
-        val im = new Array[Float](size)
-	for (i <- 0 to size) {
-          val pattern = new Pattern("\\s") 
-   	  val sp = pattern.split(input(i))
-	  re(i)  =  Float(sp(0)),
-          im(i) = Float(sp(1)) 
-	}
-	for (i <- 0 to size) {
-          if (x(i).im == 0) println(x(i).re) 
-       }
-    \end{lstlisting}
+\begin{lstlisting}
+val size = input.size
+val re = new Array[Float](size)
+val im = new Array[Float](size)
+for (i <- 0 to size) {
+  val pattern = new Pattern("\\s") 
+  val sp = pattern.split(input(i))
+  re(i)  =  Float(sp(0))
+  im(i) = Float(sp(1)) 
+}
+for (i <- 0 to size) {
+  if (x(i).im == 0) println(x(i).re) 
+}
+\end{lstlisting}
     \caption{AoS $\rightarrow$ SoA}
     \label{lst:aos-soa}
   \end{subfigure}
 \begin{subfigure}[b]{.5\linewidth}
-    \begin{lstlisting}
-	val size = input.size
-	val pattern = new Pattern("\\s") 
-	for (i <- 0 to size) {
-	  val sp = pattern.split(input(i))
- 	  val im = Float(sp(1))
-	  if (im == 0)  {
-	    val re = Float(sp(2))
- 	    println(re)
-   	  }
-	}
-    \end{lstlisting}
+\begin{lstlisting}
+val size = input.size
+val pattern = new Pattern("\\s")
+ 
+for (i <- 0 to size) {
+  val sp = pattern.split(input(i))
+  val im = Float(sp(1))
+  if (im == 0)  {
+    val re = Float(sp(2))
+    println(re)
+  }
+}
+\end{lstlisting}
     \caption{Loop fusion and code motion}
     \label{lst:fusion-motion}
   \end{subfigure}
@@ -128,14 +129,12 @@ precise and unbiased information on this topic is very difficult.
 
 % modularity through scalable components abstraction.
 The modular design of LMS allows the DSL developer to arbitrarily compose the
-interface, optimizations and code generation of the DSL. LMS provides
-implementations for most constructs the Scala language and the most common
-libraries, so that the DSL can be very close to normal Scala. Also, common data
-parallel patterns are available as modules in project Delite \cite{dsl11}.
-Module inclusion is simply done by mixing Scala traits together. The correctness
+interface, optimizations and code generation of the DSL. Module inclusion is simply done by mixing Scala traits together. The correctness
 of the composition and missing dependencies are checked by the type system. Code
 generation for a DSL is also modular, so the effort is almost completely spent
-on domain-specific aspects.
+on domain-specific aspects. LMS provides implementations for most of
+the Scala constructs and the most common libraries. This allows to make DSLs
+that are fairly general - comparable to standard Scala.
 
 % LMS effects
 Unlike Scala, which does not have an effect tracking mechanism, LMS provides
@@ -181,9 +180,8 @@ effectful statements or be moved across control structures. In the
 for Scala.
 
 LMS has been used successfully by Brown et al. for heterogeneous parallel
-computing in project Delite \cite{brown_heterogeneous_2011}, Kossakowski et al.
-for a JavaScript DSL \cite{greg} and in the SIQ project for embedding queries
-into the Scala language.
+computing in project Delite \cite{brown_heterogeneous_2011, dsl11} and by
+Kossakowski et al. for a JavaScript DSL \cite{greg}.
 
 \subsection{LMS Optimizations}
 \label{subsec:lms-optimizations}
@@ -218,12 +216,9 @@ together and index variables are relinked to the fused loop's index variable.
 Fusion greatly improves performance as it removes intermediate data structures
 and uncovers new opportunities for other optimizations.
 
-% iteration until the fixed point is reached
-All the above mentioned algorithms are repeated for program scopes at one level
-until a fixed point is reached. Then the whole cycle is applied to the next
-level of scopes, thereby optimizing the whole program. In Listing
-\ref{lst:step-by-step-lms}, we present these optimizations on a single example
-which parses an array of complex numbers and prints only the real parts of them.
+% Listing
+In Listing \ref{lst:step-by-step-lms}, we present these optimizations on a
+single example which parses an array of complex numbers and prints only the real parts of them.
 Step \ref{lst:original}) shows the original program, \ref{lst:cse-inline}) shows
 how CSE extracts \code{size} and inlining replaces \code{parse} and \code{split}
 invocations with their bodies. In step \ref{lst:aos-soa}) the array \code{x} of

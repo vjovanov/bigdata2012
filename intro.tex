@@ -2,21 +2,62 @@
 \label{sec:introduction}
 
 % Motivation -- three different types programming models and their problems
-In the past decade, numerous systems for big data cluster computing have been studied \cite{dean_mapreduce:_2008, yu_dryadlinq:_2008-1, olston_pig_2008-1, thusoo_hive_2010-1, spark-nsdi}. Programming models of these systems impose a trade-off between generality, performance and productivity. Systems like Hadoop MapReduce, \cite{hadoop} and Dryad \cite{isard_dryad:_2007} provide a low level general purpose programming model that allows writing fine grained and optimized code. However, low level optimizations greatly sacrifice productivity \cite{chambers_flumejava:_2010}. Restricted programming models like Pig latin \cite{olston_pig_2008-1} exploit domain knowledge to provide both good performance and productivity for a large number of use cases. However, they support generality only through user defined functions that are cumbersome and difficult to optimize. Finally, models like Spark \cite{spark-nsdi}, FlumeJava \cite{chambers_flumejava:_2010} and Dryad/LINQ \cite{yu_dryadlinq:_2008-1} provide high level operations and general purpose programming models, but their performance is limited by glue code between high level operations. Also, many relational optimizations are impossible due to the lack of knowledge about the program structure. 
+In the past decade, numerous systems for big data cluster computing have been
+studied \cite{dean_mapreduce:_2008, yu_dryadlinq:_2008-1, olston_pig_2008-1,
+thusoo_hive_2010-1, spark-nsdi}. Programming models of these systems impose a
+trade-off between generality, performance and productivity. Systems like Hadoop
+MapReduce, \cite{hadoop} and Dryad \cite{isard_dryad:_2007} provide a low level
+general purpose programming model that allows writing fine grained and optimized
+code. However, low level optimizations greatly sacrifice productivity
+\cite{chambers_flumejava:_2010}. Restricted programming models like Pig Latin
+\cite{olston_pig_2008-1} exploit domain knowledge to provide both good
+performance and productivity for a large number of use cases. However, they
+support generality only through user defined functions that are cumbersome to
+write and difficult to optimize. Finally, models like Spark \cite{spark-nsdi},
+FlumeJava \cite{chambers_flumejava:_2010} and Dryad/LINQ
+\cite{yu_dryadlinq:_2008-1} provide high level operations and general purpose
+programming models, but their performance is limited by glue code between high
+level operations. Also, many relational optimizations are impossible due to the
+lack of knowledge about the program structure.
 
 % Trade-off - why cant there be both generality, performance and productivity
-The above mentioned trade-off exist due to imperative programming models, run-time binding of methods and open world assumptions commonly used in languages for big data processing. This limits the compiler's ability to optimize the code. Less efficient abstractions like iterators and channels are not removed from the code that connects declarative operations. Side effect free operations like date/time instantiation, regular expression compilation and high precision decimal numbers are often hidden by abstraction and recomputed in the hot path for each piece of data. 
+The above mentioned trade-off exist due to imperative programming models,
+run-time binding of methods and open world assumptions commonly used in
+programming languages for big data processing. This limits the compiler's
+ability to optimize the code. Inefficient abstractions like iterators and channels are
+not removed from the code that connects declarative operations. Side effect free
+operations like date/time instantiation, regular expression compilation and high
+precision decimal numbers are often hidden by abstraction and recomputed in the
+hot path for each piece of data.
 
-Domain specific approaches, like Pig and SQL, have a narrow and side effect free interface and provide good optimizations. However, they come with their own set of limitations. Their programming model is often too simple for a wide range of problems. This requires reverting to external language operations, which are again hard to optimize, or to abandoning the model completely. Moreover, there is the high overhead of learning a new language, and proper tool support, like debugging, type driven correctness checking and IDE support is often limited. It is also hard to extend these frameworks with optimizations for a new domain.
+Domain-specific approaches, like Pig and SQL, have a narrow and side effect
+free interface and provide good optimizations. However, they come with their own set
+of limitations. Their programming model is often too simple for a wide range of
+problems. This requires reverting to external language operations, which are
+again hard to optimize, or to abandoning the model completely. Moreover, there
+is the high overhead of learning a new language, and proper tool support, like
+debugging, type driven correctness checking and IDE support is often limited. It
+is also hard to extend these frameworks with optimizations for a new domain.
 
 % Existing Solutions to achieve this
-Recently history there have been several solutions that try to make programming big data systems efficient, productive and general at the same time. Steno \cite{murray_steno:_2011} implements an innovative runtime code generation scheme that eliminates iterators in Dryad/LINQ queries. It operates over flat and nested queries and produces a minimal number of loops without any iterator calls. Manimal \cite{jahani_automatic_2011} and HadoopToSQL \cite{iu_hadooptosql:_2010} apply byte code analysis, to extract information about unused data columns and selection conditions; as a result to gain enough knowledge to apply common relational database optimizations for projection and selection. However, since these solutions use static byte code analysis they must be safely conservative which can lead to missed optimization opportunities.
+Recently there have been several solutions that try to make programming
+big data systems efficient, productive and general at the same time. Steno
+\cite{murray_steno:_2011} implements an innovative runtime code generation
+scheme that eliminates iterators in Dryad/LINQ queries. It operates over flat
+and nested queries and produces a minimal number of loops without any iterator
+calls. Manimal \cite{jahani_automatic_2011} and HadoopToSQL
+\cite{iu_hadooptosql:_2010} apply byte code analysis, to extract information
+about unused data columns and selection conditions; as a result to gain enough
+knowledge to apply common relational database optimizations for projection and
+selection. However, since these solutions use static byte code analysis they
+must be safely conservative which can lead to missed optimization opportunities.
 
 % general, restricted
 % optimizations
 % modular/extensible
 % portable
-This paper presents a new domain specific language \tool for big data processing that provides a high level declarative interface similar to Dryad/LINQ and Spark. \tool builds upon language virtualization \cite{moors_scala-virtualized_2012} and lightweight modular staging \cite{rompf_lightweight_2010} (LMS) and has the same syntax and semantics as the regular Scala language with only a few restrictions.
+This paper presents a new domain-specific framework \tool for big data
+processing that provides a high level declarative interface similar to Dryad/LINQ and Spark. \tool builds upon language virtualization \cite{moors_scala-virtualized_2012} and lightweight modular staging \cite{rompf_lightweight_2010} (LMS) and has the same syntax and semantics as the regular Scala language with only a few restrictions.
 Because \tool includes common compiler and relational optimizations, as well as domain specific ones, it produces very fast programs. It is designed in a very modular way - the code generation is completely independent of the parsing and optimizations - and allows extensions for supported operations, optimizations and backends. 
 % Our implementation
 
@@ -39,7 +80,7 @@ This paper makes following contributions to the state of the art:
   assumptions which lead to missed optimization opportunities.
 
   \item We show that \tool allows easy language extension and code portability
-  for big data frameworks.
+  for distributed batch processing frameworks.
 
 \end{itemize} 
 

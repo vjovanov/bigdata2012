@@ -2,7 +2,9 @@
 \label{sec:discussion}
 
 % Generality of our approach
-The language we provide is the same as Scala in its basic constructs, however it does not support all of the functionalities. The following functionalities are not available:  
+The language we provide is the same as Scala in its basic constructs, however it
+does not support all of the functionalities. The following functionalities are
+not available:
 \begin{itemize}
 \item Projection optimization can only be applied to final immutable classes. This somewhat limits the language, but in large big data processing, data records are often not polymorphic. 
 \item Polymorphism is supported only in a limited form. The limitation is that all possible implementations need to be known at staging time and currently it prevents optimization of the polymorphic method call.

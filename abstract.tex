@@ -10,7 +10,7 @@ program optimizations.
 We present a distributed batch data processing framework called \tool.
 \tool uses deep language embedding in Scala, multi-stage programming and explicit side effect
 tracking to analyze the structure of user programs. The analysis is used to
-apply early projection, which eliminates unused data, as well as code
+apply projection insertion, which eliminates unused data, as well as code
 motion and operation fusion to highly optimize the performance critical path of
 the program. The language embedding and a high-level interface allow \tool
 programs to be both expressive, resembling regular Scala code, and optimized.

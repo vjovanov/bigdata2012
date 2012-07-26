@@ -3,10 +3,19 @@
 
 % Scala and Spark and Collections like interface
 The basic abstraction in our programming model is the interface
-\scode{DList[T]}. \scode{DList[T]} represents a distributed collection of elements that have type \scode{S} which is a subtype of \scode{T}. The elements of a \scode{DList[T]} collection are immutable, so each operation on the list can only: \emph{i)} produce a new \scode{DList}, \emph{ii)} save it to persistent storage, \emph{iii)} materialize it on the master node or \emph{iv)} return an aggregate value.
+\scode{DList[T]}. \scode{DList[T]} represents a distributed collection of
+elements that have type \scode{S} which is a subtype of \scode{T}. The elements
+of a \scode{DList[T]} collection are immutable, so each operation on the list
+can only: \emph{i)} produce a new \scode{DList}, \emph{ii)} save it to
+persistent storage, \emph{iii)} materialize it on the master node or \emph{iv)}
+return an aggregate value.
 
-% Operations and reference to the Table. monadic operations, concat, partitionBy, cache, count returns the value
-\code{DList} operations are presented in Table \ref{tbl:operations}. In the left column, we show which frameworks support which method. The middle column shows the method name. Finally, the right column contains the type of \code{DList} that the operation is called on, and return type of the operation.
+% Operations and reference to the Table. monadic operations, concat,
+% partitionBy, cache, count returns the value
+\code{DList} operations are presented in Table \ref{tbl:operations}. In the left
+column, we show which frameworks support which method. The middle column shows
+the method name. Finally, the right column contains the type of \code{DList}
+that the operation is called on, and return type of the operation.
 
 \begin{table*}[ht!]
 \centering
@@ -34,13 +43,34 @@ Crunch						        & \scode{sort(asc: Rep[Boolean])}					& \scode{DList[T] => D
 \label{tbl:operations}
 \end{table*}
 
-Operations \code{DList()} and \code{save} are used for loading and storing data to the persistent storage. \code{map, filter} and \code{flatMap} are standard list comprehensions for transforming the data by applying the argument function and can also be used with Scala \code{for} comprehensions. Operations \code{groupByKey}, \code{join}, \code{cogroup}, \code{cross} and \code{reduce} are applicable only if the elements of \code{DList} form a key/value tuple. \code{reduce} is used for general aggregation after the \code{groupByKey}, \code{join, cogroup} and \code{cross} are different types of relational joins. \code{sort} sorts the dataset, \code{partitionBy} defines partitioning among machines, and \code{cache} signals that data should be kept in cluster memory for faster future accesses. Two \code{DList}s can be concatenated by the \code{++} operation. A DList can be materialized on the master node by calling \code{materialize()}.
+Operations \code{DList()} and \code{save} are used for loading and storing data
+to the persistent storage. \code{map, filter} and \code{flatMap} are standard
+list comprehensions for transforming the data by applying the argument function
+and can also be used with Scala \code{for} comprehensions. Operations
+\code{groupByKey}, \code{join}, \code{cogroup}, \code{cross} and \code{reduce}
+are applicable only if the elements of \code{DList} form a key/value tuple.
+\code{reduce} is used for general aggregation after the \code{groupByKey},
+\code{join, cogroup} and \code{cross} are different types of relational joins.
+\code{sort} sorts the dataset, \code{partitionBy} defines partitioning among
+machines, and \code{cache} signals that data should be kept in cluster memory
+for faster future accesses. Two \code{DList}s can be concatenated by the
+\code{++} operation. A DList can be materialized on the master node by calling
+\code{materialize()}.
 
-Some methods accept functions as their parameters. Code within these functions can be either written in the \tool DSL, or by using existing functions from an external library or common JVM libraries. Using JVM libraries requires just one extra line of code per method.  
+Some methods accept functions as their parameters. Code within these functions
+can be either written in the \tool DSL, or by using existing functions from an
+external library or common JVM libraries. Using JVM libraries requires just one
+extra line of code per method.
 
 % Example word count application
-In Listing \ref{lst:wordcount}, we show an implementation of a simple word
-count example, in which the code does not have any visible \code{Rep} types. Since a large subset of the Scala library is implemented as a DSL module, functions like \code{split} and string concatenation are used the same way as they are in Scala. In the second line, the regular (with arguments wrapped in \code{Rep}) method \code{parse} is passed to the \code{map} method. Pig and Hive do not have functions in their own language, but allow writing user defined functions in other languages which requires a considerable amount of boilerplate code.
+In Listing \ref{lst:wordcount}, we show an implementation of a simple word count
+example, in which the code does not have any visible \code{Rep} types. Since a
+large subset of the Scala library is implemented as a DSL module, functions like
+\code{split} and string concatenation are used the same way as they are in
+Scala. In the second line, the regular (with arguments wrapped in \code{Rep})
+method \code{parse} is passed to the \code{map} method. Pig and Hive do not have
+functions in their own language, but allow writing user defined functions in
+other languages which requires a considerable amount of boilerplate code.
 
 % Word count showing generality, rep clean api.
 \begin{lstlisting}[name=code, caption=Example of word count program where type inference removes the need to declare any \scode{Rep} types., captionpos=b, label=lst:wordcount, float=t]
@@ -54,4 +84,13 @@ count example, in which the code does not have any visible \code{Rep} types. Sin
 \end{lstlisting}
 
 All methods except for \code{cache} and \code{sort} can be mapped to methods in
-Scoobi, Spark and Crunch. Other back-ends (including Dryad) provide these primitives as well. The \code{cache} method currently works with Spark only but it can be added to the interface of other back-ends, in which it would have no effect, such that the code stays portable. From existing frameworks today only HaLoop \cite{bu_haloop:_2010} and Twister \cite{ekanayake_twister:_2010} can benefit from it, however we did not implement code generation for them. Method \code{sort} is inconsistent in most of the frameworks so we have not mapped uniformly to all of them. However, with slight modifications to the framework implementations it could be supported as well. \code{sort} can also be implemented in \tool itself by using \code{takeSample} and \code{partitionBy}.
+Scoobi, Spark and Crunch. Other back-ends (including Dryad) provide these
+primitives as well. The \code{cache} method currently works with Spark only but
+it can be added to the interface of other back-ends, in which it would have no
+effect, such that the code stays portable. From existing frameworks today only
+HaLoop \cite{bu_haloop:_2010} and Twister \cite{ekanayake_twister:_2010} can
+benefit from it, however we did not implement code generation for them. Method
+\code{sort} is inconsistent in most of the frameworks so we have not mapped
+uniformly to all of them. However, with slight modifications to the framework
+implementations it could be supported as well. \code{sort} can also be
+implemented in \tool itself by using \code{takeSample} and \code{partitionBy}.

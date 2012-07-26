@@ -5,18 +5,50 @@
    \caption{Word Count benchmark.}
    \label{fig:word-count}%\vspace{10pt}
 \end{figure}
-We evaluate \tool optimizations by comparing the performance of three programs: \emph{i)} A word count with prior text parsing, \emph{ii)} TPCH \cite{tpch} query 12 and a  \emph{iii)} k-means application. To evaluate the extensibility of the framework we introduce a new DSL component that represents vectors in the k-means benchmark.
+We evaluate \tool optimizations by comparing the performance of three programs:
+\emph{i)} A word count with prior text parsing, \emph{ii)} TPCH \cite{tpch}
+query 12 and a  \emph{iii)} k-means application. To evaluate the extensibility
+of the framework we introduce a new DSL component that represents vectors in the
+k-means benchmark.
 
-All experiments were performed on the Amazon EC2 Cloud, using 20 "m1.large" nodes as slaves and one as a master. They each have 7.5 GB of memory, 2 virtual cores with 2 EC2 compute units each, 850 GB of instance storage distributed over 2 physical hard drives and have 1 Gb/s network interface. Prior to the experiments we have measured up to 50 MB/s between two nodes. For the Hadoop experiments we used the cdh3u4 Cloudera Hadoop distribution. On top of it we used Crunch version 0.2.4 and Scoobi 0.4.0. We did not tweak Hadoop configuration beyond the default settings set by the Whirr 0.7.1 \cite{whirr} tool. For benchmarking Spark we used the Mesos \cite{hindman_mesos:_2011} EC2 script to start a cluster, and the most recent version of Spark for our tests. For Spark we changed the default parallelism level to the number of cores in the cluster and increased the maximum memory to 6GB. 
+All experiments were performed on the Amazon EC2 Cloud, using 20 "m1.large"
+nodes as slaves and one as a master. They each have 7.5 GB of memory, 2 virtual
+cores with 2 EC2 compute units each, 850 GB of instance storage distributed over
+2 physical hard drives and have 1 Gb/s network interface. Prior to the
+experiments we have measured up to 50 MB/s between two nodes. For the Hadoop
+experiments we used the cdh3u4 Cloudera Hadoop distribution. On top of it we
+used Crunch version 0.2.4 and Scoobi 0.4.0. We did not tweak Hadoop
+configuration beyond the default settings set by the Whirr 0.7.1 \cite{whirr}
+tool. For benchmarking Spark we used the Mesos \cite{hindman_mesos:_2011} EC2
+script to start a cluster, and the most recent version of Spark for our tests.
+For Spark we changed the default parallelism level to the number of cores in the
+cluster and increased the maximum memory to 6GB.
 
 % Regular expressions
-While doing preliminary benchmarking we found some easy tweaks focused on regular expressions that we needed to include in \tool in order to have a fair comparison against Pig, which contains them. We implemented a fast splitter, which uses an efficient character comparison whenever the regular expression allows this. Additionally we select based on the regular expression between Java's implementation and the dk.brics.automaton library \cite{mollerdk}.
-%For a fairer comparison with Pig we adapted some of their regular expression optimizations for our program. Pig makes use of a faster library \cite{mollerdk} and implements an optimized splitting function when the regular expression becomes a simple comparison of one character. We implemented a frontend for regular expressions which automatically selects the best variant for each expression and operation. 
+While doing preliminary benchmarking we found some easy tweaks focused on
+regular expressions that we needed to include in \tool in order to have a fair
+comparison against Pig, which contains them. We implemented a fast splitter,
+which uses an efficient character comparison whenever the regular expression
+allows this. Additionally we select based on the regular expression between
+Java's implementation and the dk.brics.automaton library \cite{mollerdk}.
+% For a fairer comparison with Pig we adapted some of their regular expression
+% optimizations for our program. Pig makes use of a faster library
+% \cite{mollerdk} and implements an optimized splitting function when the
+% regular expression becomes a simple comparison of one character. We
+% implemented a frontend for regular expressions which automatically selects the
+% best variant for each expression and operation.
 
 % Data Serialization
-For serialization of data we used LMS code generation to achieve minimal overhead for both Crunch and Scoobi frameworks because they outperformed the Kryo \cite{ kryo} library by a small margin. For Spark we used the standard serialization mode which uses Kryo. All benchmarks were run three times and in the figures we present the average value. We also computed the standard deviations but we omitted them since they are smaller than 3\% in all the experiments.
+For serialization of data we used LMS code generation to achieve minimal
+overhead for both Crunch and Scoobi frameworks because they outperformed the
+Kryo \cite{ kryo} library by a small margin. For Spark we used the standard
+serialization mode which uses Kryo. All benchmarks were run three times and in
+the figures we present the average value. We also computed the standard
+deviations but we omitted them since they are smaller than 3\% in all the
+experiments.
 
-We made the \tool code, as well as the generated code, available on \url{https://github.com/stivo/Distributed}.
+We made the \tool code, as well as the generated code, available on
+\url{https://github.com/jet-framework/jet}.
 
 
 % WordCount
@@ -96,18 +128,35 @@ In this benchmark the optimizations interact with each other. The absolute perfo
 \end{figure}
 
 % Pig Comparison
-In Figure \ref{fig:pig} we compare the most optimal versions of benchmarks to equivalent Pig programs. The y axis is normalized to the Pig execution time and overall job time is stated above the bar. We notice that for TPCH query 12 the combination of fusion, code motion and field reduction outperform Pig when the Crunch framework is used. 
+In Figure \ref{fig:pig} we compare the most optimal versions of benchmarks to
+equivalent Pig programs. The y axis is normalized to the Pig execution time and
+overall job time is stated above the bar. We notice that for TPCH query 12 the
+combination of fusion, code motion and field reduction outperform Pig when the
+Crunch framework is used.
 
 % Spark
-For the sake of showing comparison between the Hadoop based frameworks and the Spark framework we include the Spark results in the graph. We see that in all cases except for unoptimized TPCH query 12 it significantly outperforms the Hadoop based frameworks.
+For the sake of showing comparison between the Hadoop based frameworks and the
+Spark framework we include the Spark results in the graph. We see that in all
+cases except for unoptimized TPCH query 12 it significantly outperforms the
+Hadoop based frameworks.
 
-In the word count benchmark Crunch outperforms Pig even without any optimizations applied. We believe that Pig uses inefficiency string processing primitives. With all optimizations Crunch is 73\% faster than Pig. We explain this by the more optimal regular expressions processing support included in the \tool. In regular expressions used in the benchmark Pig falls back to default Java regular expressions while \tool uses optimized automaton library. Scoobi framework performs slower than Pig in both benchmarks even with all optimizations applied.
+In the word count benchmark Crunch outperforms Pig even without any
+optimizations applied. We believe that Pig uses inefficiency string processing
+primitives. With all optimizations Crunch is 73\% faster than Pig. We explain
+this by the more optimal regular expressions processing support included in the
+\tool. In regular expressions used in the benchmark Pig falls back to default
+Java regular expressions while \tool uses optimized automaton library. Scoobi
+framework performs slower than Pig in both benchmarks even with all
+optimizations applied.
 
 
 \subsection{Extensibility and Modularity}
 \label{subsec:kmeans}
 
-To evaluate modularity and extensibility of \tool we decided to extend with a \code{Vector} abstraction that has abstract methods for arithmetic vector operations that get compiled into loops over arrays. We also chose this benchmark to emphasize the extensibility of \tool.
+To evaluate modularity and extensibility of \tool we decided to extend with a
+\code{Vector} abstraction that has abstract methods for arithmetic vector
+operations that get compiled into loops over arrays. We also chose this
+benchmark to emphasize the extensibility of \tool.
 
 % K-means language extensibility with KMeans
 We took a version of Spark k-means program \cite{spark-nsdi} application and
@@ -121,6 +170,19 @@ with 10 to 1000 dimensions, 100 centers and we keep the $dimensions * points$
 factor constant so that each input file is around 20Gb.
 
 % Different backends
-Our results are similar to those described by Murray et al. in \cite{murray_steno:_2011}. In lower dimensions our optimization shows large speedup while for 1000 dimensions our version performs slightly worse. We believe that the iterator overhead is quite high in case of 10 dimensions, such that our loops which removes it performs much better. At higher dimensions it's possible that the JVM can do a better job optimizing if the code is smaller, such that our pre-optimized and larger code becomes slightly slower. In any case our implementation seems favorable as it performs more consistently for different dimensions.
+Our results are similar to those described by Murray et al. in
+\cite{murray_steno:_2011}. In lower dimensions our optimization shows large
+speedup while for 1000 dimensions our version performs slightly worse. We
+believe that the iterator overhead is quite high in case of 10 dimensions, such
+that our loops which removes it performs much better. At higher dimensions it's
+possible that the JVM can do a better job optimizing if the code is smaller,
+such that our pre-optimized and larger code becomes slightly slower. In any case
+our implementation seems favorable as it performs more consistently for
+different dimensions.
 
-The \code{Vector} class extension is only 100 lines of Scala code and was implemented in one working day which shows that it is not hard to add highly optimal abstraction. Also, during evaluation we not getting satisfying performance in the Scoobi framework so we implemented the code generation for Crunch. The code for this module is 300 lines of code and the implementation took 4 man days.
+The \code{Vector} class extension is only 100 lines of Scala code and was
+implemented in one working day which shows that it is not hard to add highly
+optimal abstraction. Also, during evaluation we not getting satisfying
+performance in the Scoobi framework so we implemented the code generation for
+Crunch. The code for this module is 300 lines of code and the implementation
+took 4 man days.

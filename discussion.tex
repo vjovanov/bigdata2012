@@ -1,6 +1,6 @@
 \section{Discussion}
 \label{sec:discussion}
-
+ 
 % Generality of our approach
 The language we provide is the same as Scala in its basic constructs, however it
 does not support all of the functionalities. The following functionalities are
@@ -16,12 +16,28 @@ not available:
 
 
 % Code compilation and generation vs interactivity
-One of the caveats of the staged DSL approach is that the program staging, compilation, generation and compilation of the generated code increases the startup time for the task. For the benchmarks we have evaluated that this process takes from 4 to 14 seconds. Although this can be significant, it needs to be only done once on a single machine so we believe it is not a limiting factor for batch jobs.
+One of the caveats of the staged DSL approach is that the program staging,
+compilation, generation and compilation of the generated code increases the
+startup time for the task. For the benchmarks we have evaluated that this
+process takes from 4 to 14 seconds. Although this can be significant, it needs
+to be only done once on a single machine so we believe it is not a limiting
+factor for batch jobs.
 
-The only case where compile time becomes relevant is with back-ends that support interactive data analytics, like the Spark framework. Spending more than a couple of seconds for compilation would affect the interactivity. 
+The only case where compile time becomes relevant is with back-ends that support
+interactive data analytics, like the Spark framework. Spending more than a
+couple of seconds for compilation would affect the interactivity.
 
-However, if data processing is comparable to user reaction time, optimizations are not needed and we could implement a version of \tool which does not generate the IR, but executes the original code straight away. This feature is not implemented in \tool, but Kossakowski et al. \cite{greg} have done this for the Javascript DSL.
+However, if data processing is comparable to user reaction time, optimizations
+are not needed and we could implement a version of \tool which does not generate
+the IR, but executes the original code straight away. This feature is not
+implemented in \tool, but Kossakowski et al. \cite{greg} have done this for the
+Javascript DSL.
 
-% Job specific tuning 
-Each job requires a framework specific configuration for its optimal execution (e.g. the number of mappers, reducers, buffer sizes etc.). Our current API does not include tuning of these parameters, but in the future work we want to introduce a configuration part of the DSL to unify configuration of different backends.
-With the current programming model it is not possible to tune these parameters in a unified way. 
+% Job specific tuning
+Each job requires a framework specific configuration for its optimal execution
+(e.g. the number of mappers, reducers, buffer sizes etc.). Our current API does
+not include tuning of these parameters, but in the future work we want to
+introduce a configuration part of the DSL to unify configuration of different
+backends.
+With the current programming model it is not possible to tune these parameters
+in a unified way.

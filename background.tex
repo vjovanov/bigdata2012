@@ -77,7 +77,15 @@ In this section we explain language virtualization in Scala, Lightweight Modular
 % language virtualization
 \subsection{Virtualized Scala}
 \label{subsec:virtualized-scala}
-\tool is written in an experimental version of Scala called Virtualized Scala \cite{moors_scala-virtualized_2012} which provides facilities for deep embedding of domain specific languages (DSLs). Deep embedding is achieved by translating regular language constructs like conditionals, loops, variable declarations and pattern matching to regular method calls. For example, for the code \code{if (c) a else b}, the conditional is not executed but instead a method call is issued to the override-able method \code{__ifThenElse(c, a, b)}. In case of deeply embedded DSLs it is used for creation of an intermediate representation (IR) node that represents the \code{if} statement.
+\tool is written in an experimental version of Scala called Virtualized Scala
+\cite{moors_scala-virtualized_2012} which provides facilities for deep embedding
+of domain-specific languages (DSLs). Deep embedding is achieved by translating
+regular language constructs like conditionals, loops, variable declarations and
+pattern matching to regular method calls. For example, for the code \code{if (c)
+a else b}, the conditional is not executed but instead a method call is issued
+to the override-able method \code{__ifThenElse(c, a, b)}. In case of deeply
+embedded DSLs it is used for creation of an intermediate representation (IR)
+node that represents the \code{if} statement.
 
 In Virtualized Scala, all embedded DSLs are written within DSL scopes. These special scopes look like method invocations that take one by name parameter (block of Scala code). They get translated to the complete specification of DSL modules that are used in a form of a Scala trait mix-in composition\footnote[1]{Scala's support for multiple inheritance}. For example: 
 \code{stivoDSL\{ \\\\ dsl code \}} gets translated into:
@@ -96,7 +104,9 @@ Although modified, Virtualized Scala is fully binary compatible with Scala and c
 Since Scala's type system supports type inference and implicit conversions, most of the \code{Rep[T]} types are hidden from the DSL user. This makes the DSL code free of type information and makes the user almost unaware of the \code{Rep} types. The only situation where \code{Rep} types become are visible is in parameters of methods and fields of defined classes. In our experience writing DSLs, \code{Rep} types do not present a problem but gathering precise and unbiased information on this topic is very difficult.  
 
 % modularity through scalable components abstraction.
-The modular design of LMS allows the DSL developer to arbitrarily compose the interface, optimizations and code generation of the DSL. LMS provides implementations for most constructs the Scala language and the most common libraries, so that the DSL can be very close to normal Scala. Also, common data parallel patterns are available as modules in project Delite \cite{dsl11}. Module inclusion is simply done by mixing Scala traits together. The correctness of the composition and missing dependencies are checked by the type system. Code generation for a DSL is also modular, so the effort is almost completely spent on domain specific aspects.
+The modular design of LMS allows the DSL developer to arbitrarily compose the
+interface, optimizations and code generation of the DSL. LMS provides
+implementations for most constructs the Scala language and the most common libraries, so that the DSL can be very close to normal Scala. Also, common data parallel patterns are available as modules in project Delite \cite{dsl11}. Module inclusion is simply done by mixing Scala traits together. The correctness of the composition and missing dependencies are checked by the type system. Code generation for a DSL is also modular, so the effort is almost completely spent on domain-specific aspects.
 
 % LMS effects
 Unlike Scala, which does not have an effect tracking mechanism, LMS provides precise information about the effect for each available operation. The DSL developer needs to explicitly specify the effects for each DSL operation he introduces. The LMS effect tracking system then calculates the effects summary for each basic block in the DSL code. This allows the optimizer to apply code motion on the pure (side effect free) parts of the code. All implementations for standard library constructs that LMS provides such as strings, arrays, loops and conditionals, already include effect tracking.

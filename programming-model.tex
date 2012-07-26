@@ -3,18 +3,18 @@
 
 % Scala and Spark and Collections like interface
 The basic abstraction in our programming model is the interface
-\scode{DList[T]}. \scode{DList[T]} represents a distributed collection of
+\scode{DColl[T]}. \scode{DColl[T]} represents a distributed collection of
 elements that have type \scode{S} which is a subtype of \scode{T}. The elements
-of a \scode{DList[T]} collection are immutable, so each operation on the list
-can only: \emph{i)} produce a new \scode{DList}, \emph{ii)} save it to
+of a \scode{DColl[T]} collection are immutable, so each operation on the list
+can only: \emph{i)} produce a new \scode{DColl}, \emph{ii)} save it to
 persistent storage, \emph{iii)} materialize it on the master node or \emph{iv)}
 return an aggregate value.
 
 % Operations and reference to the Table. monadic operations, concat,
 % partitionBy, cache, count returns the value
-\code{DList} operations are presented in Table \ref{tbl:operations}. In the left
+\code{DColl} operations are presented in Table \ref{tbl:operations}. In the left
 column, we show which frameworks support which method. The middle column shows
-the method name. Finally, the right column contains the type of \code{DList}
+the method name. Finally, the right column contains the type of \code{DColl}
 that the operation is called on, and return type of the operation.
 
 \begin{table*}[ht!]
@@ -22,39 +22,39 @@ that the operation is called on, and return type of the operation.
 \begin{tabular}{|c|l|l|} \hline
 Framework  & Operation & Transformation\\ \hline
 
-\multirow{12}{*}{All}		       		& \scode{DList(uri: Rep[String])}      				& \scode{String => DList[T]}\\ %\cline{2-3}
-								& \scode{save(uri: Rep[String])}      				        & \scode{DList[T] => Unit}\\ %\cline{2-3}
-								& \scode{map(f: Rep[T] => Rep[U])}      				& \scode{DList[T] => DList[U]}\\ %\cline{2-3}
-								& \scode{filter(f: Rep[T] => Rep[Boolean])}			& \scode{DList[T] => DList[T]}\\ %\cline{2-3}
-								& \scode{flatMap(f: Rep[T] => Rep[Iter[U]])}		        & \scode{DList[T] => DList[U]}\\ %\cline{2-3}
-								& \scode{groupByKey()} 							& \scode{DList[(K, V)] => DList[(K, Iter[V])]}\\ %\cline{2-3} 
-								& \scode{reduce(f: (Rep[V], Rep[V]) => Rep[V])} 	        & \scode{DList[(K, Iter[V])] => DList[(K, V)]}\\ %\cline{2-3} 
-								& \scode{cogroup(right: Rep[DList[(K, W)]])} 			& \scode{DList[(K, V)] => DList[(K, (Iter[K], Iter[W]))]}\\ %\cline{2-3} 								
-								& \scode{join(right: Rep[DList[(K, W)]])} 			& \scode{DList[(K, V)] => DList[(K, (V, W))]}\\ %\cline{2-3} 
-								& \scode{++(other: Rep[DList[T]])}		                & \scode{DList[T] => DList[T]]}\\ %%\cline{2-3}							
-								& \scode{partitionBy(p: Rep[Partitioner[T]])} 			& \scode{DList[T] => DList[T]}\\ %\cline{2-3} 
-								& \scode{takeSample(p: Rep[Double])} 					& \scode{DList[T] => Iter[T]}\\ 
-								& \scode{materialize()} 					& \scode{DList[T] => Iter[T]}\\ \hline
-\multirow{2}{*}{Spark}			        & \scode{cache()} 								& \scode{DList[T] => DList[T]}\\ %\cline{2-3} 
-								& \scode{sort(cmp: Rep[Comparator[T]])}			& \scode{DList[T] => DList[T]}\\ \hline
-Crunch						        & \scode{sort(asc: Rep[Boolean])}					& \scode{DList[T] => DList[T]} \\ \hline
+\multirow{12}{*}{All}		       		& \scode{DColl(uri: Rep[String])}      				& \scode{String => DColl[T]}\\ %\cline{2-3}
+								& \scode{save(uri: Rep[String])}      				        & \scode{DColl[T] => Unit}\\ %\cline{2-3}
+								& \scode{map(f: Rep[T] => Rep[U])}      				& \scode{DColl[T] => DColl[U]}\\ %\cline{2-3}
+								& \scode{filter(f: Rep[T] => Rep[Boolean])}			& \scode{DColl[T] => DColl[T]}\\ %\cline{2-3}
+								& \scode{flatMap(f: Rep[T] => Rep[Iter[U]])}		        & \scode{DColl[T] => DColl[U]}\\ %\cline{2-3}
+								& \scode{groupByKey()} 							& \scode{DColl[(K, V)] => DColl[(K, Iter[V])]}\\ %\cline{2-3} 
+								& \scode{reduce(f: (Rep[V], Rep[V]) => Rep[V])} 	        & \scode{DColl[(K, Iter[V])] => DColl[(K, V)]}\\ %\cline{2-3} 
+								& \scode{cogroup(right: Rep[DColl[(K, W)]])} 			& \scode{DColl[(K, V)] => DColl[(K, (Iter[K], Iter[W]))]}\\ %\cline{2-3} 								
+								& \scode{join(right: Rep[DColl[(K, W)]])} 			& \scode{DColl[(K, V)] => DColl[(K, (V, W))]}\\ %\cline{2-3} 
+								& \scode{++(other: Rep[DColl[T]])}		                & \scode{DColl[T] => DColl[T]]}\\ %%\cline{2-3}							
+								& \scode{partitionBy(p: Rep[Partitioner[T]])} 			& \scode{DColl[T] => DColl[T]}\\ %\cline{2-3} 
+								& \scode{takeSample(p: Rep[Double])} 					& \scode{DColl[T] => Iter[T]}\\ 
+								& \scode{materialize()} 					& \scode{DColl[T] => Iter[T]}\\ \hline
+\multirow{2}{*}{Spark}			        & \scode{cache()} 								& \scode{DColl[T] => DColl[T]}\\ %\cline{2-3} 
+								& \scode{sort(cmp: Rep[Comparator[T]])}			& \scode{DColl[T] => DColl[T]}\\ \hline
+Crunch						        & \scode{sort(asc: Rep[Boolean])}					& \scode{DColl[T] => DColl[T]} \\ \hline
 \end{tabular}
-\caption{DList operations and their framework support. For clarity reasons, \scode{Iter} represents the Scala \scode{Iterable} and \scode{Rep[_]} types in the rightmost column are omitted.  }
+\caption{DColl operations and their framework support. For clarity reasons, \scode{Iter} represents the Scala \scode{Iterable} and \scode{Rep[_]} types in the rightmost column are omitted.  }
 \label{tbl:operations}
 \end{table*}
 
-Operations \code{DList()} and \code{save} are used for loading and storing data
+Operations \code{DColl()} and \code{save} are used for loading and storing data
 to the persistent storage. \code{map, filter} and \code{flatMap} are standard
 list comprehensions for transforming the data by applying the argument function
 and can also be used with Scala \code{for} comprehensions. Operations
 \code{groupByKey}, \code{join}, \code{cogroup}, \code{cross} and \code{reduce}
-are applicable only if the elements of \code{DList} form a key/value tuple.
+are applicable only if the elements of \code{DColl} form a key/value tuple.
 \code{reduce} is used for general aggregation after the \code{groupByKey},
 \code{join, cogroup} and \code{cross} are different types of relational joins.
 \code{sort} sorts the dataset, \code{partitionBy} defines partitioning among
 machines, and \code{cache} signals that data should be kept in cluster memory
-for faster future accesses. Two \code{DList}s can be concatenated by the
-\code{++} operation. A DList can be materialized on the master node by calling
+for faster future accesses. Two \code{DColl}s can be concatenated by the
+\code{++} operation. A DColl can be materialized on the master node by calling
 \code{materialize()}.
 
 Some methods accept functions as their parameters. Code within these functions
@@ -74,7 +74,7 @@ other languages which requires a considerable amount of boilerplate code.
 
 % Word count showing generality, rep clean api.
 \begin{lstlisting}[name=code, caption=Example of word count program where type inference removes the need to declare any \scode{Rep} types., captionpos=b, label=lst:wordcount, float=t]
-    val read = DList("hdfs://..." + input)
+    val read = DColl("hdfs://..." + input)
     val parsed = read.map(WikiArticle.parse(_))
     parsed.flatMap(_.split("\\s"))
       .map(x => (x, 1))

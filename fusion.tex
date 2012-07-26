@@ -1,7 +1,7 @@
 \subsection{Operation Fusion}
 \label{sec:fusion}
 
-In Section \ref{sec:programming-model} we have shown that the \code{DList}
+In Section \ref{sec:programming-model} we have shown that the \code{DColl}
 provides declarative higher order operations. Closures passed to these
 operations do not share the same scope of variables. This reduces the number of
 opportunities for the optimizations described in Section
@@ -17,17 +17,17 @@ The loop fusion optimization described in Section \ref{subsec:lms-optimizations}
 supports horizontal and vertical fusion of loops as well as fusion of nested
 loops. Also, it provides a very simple interface to the DSL developer for
 specifying loop dependencies and for writing fusible loops. We decided to extend
-the existing mechanism to the \code{DList} operations although they are not
+the existing mechanism to the \code{DColl} operations although they are not
 strictly loops. We could have taken the path of Murray et al. in project Steno
 \cite{murray_steno:_2011} by generating an intermediate language which can be
 used for simple fusion and code generation. Also, we could use the Coutts et al.
-\cite{coutts_stream_2007} approach of converting \code{DList} to streams and
+\cite{coutts_stream_2007} approach of converting \code{DColl} to streams and
 applying equational transformation to remove intermediate results. After
 implementing the algorithm by reusing loop fusion we are confident that it
 required significantly less effort than reimplementing existing approaches.
 
 \begin{figure}[t]
-We define the set of program \code{DList} nodes as $D$.
+We define the set of program \code{DColl} nodes as $D$.
 
 For $n \in D$:
 \begin{lstlisting} 
@@ -68,7 +68,7 @@ transformation is achieved by the program translation described in Listing
 $shape\_dep(n, m)$ that carries the explicit information about its vertical
 predecessor $n$ and a $prevent\_fusion$ bit $m$, and \emph{ii)}
 \code{$iterator\_value$} that represents reading from an iterator of the
-preceding \code{DList}. $shape\_dep$ replaces the shape variable (e.g.
+preceding \code{DColl}. $shape\_dep$ replaces the shape variable (e.g.
 \code{in.size}) of the loop IR node. The \emph{yield} operation represents
 storing to the successor collection and is used in the LMS fusion algorithm for
 correct merging of two loops.
@@ -76,7 +76,7 @@ correct merging of two loops.
 For the back-end frameworks that \tool supports, the fusion operation is not
 possible for all operations in the data flow graph. If one node has multiple
 successors, after fusion, it would form a loop that yields values to multiple
-\code{DList}s. This would be possible for Hadoop, as it supports multiple
+\code{DColl}s. This would be possible for Hadoop, as it supports multiple
 outputs in the \code{Map} phase but is not currently supported in Spark, Scoobi
 and Crunch. To prevent fusion of such loops we added the $prevent\_fusion$ bit
 to the $shape\_dep$ node. We also prevent horizontal fusion by making

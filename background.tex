@@ -148,7 +148,12 @@ standard library constructs that LMS provides such as strings, arrays, loops and
 conditionals, already include effect tracking.
 
 % workflow + shallow embedding
-LMS builds a complete intermediate representation of the code, optimizes it, and then generates optimized code for the chosen target language. The generated code has then to be compiled itself, and then it can be invoked. If the compilation delay is deemed inappropriate for a certain use case, it is possible to execute the code directly in Scala. A shallow DSL embedding can be achieved this way, instead of building the IR.
+LMS builds a complete intermediate representation of the code, optimizes it, and
+then generates optimized code for the chosen target language. The generated code
+has then to be compiled itself, and then it can be invoked. If the compilation
+delay is deemed inappropriate for a certain use case, it is possible to execute
+the code directly in Scala. A shallow DSL embedding can be achieved this way,
+instead of building the IR.
 
 % println dsl 
 \begin{lstlisting}[name=code, caption=Example of how the DSL module is specified. This module is used for measuring a performance of a block of code and can be reused in any other Scala backed DSL. ,captionpos=b, label=lst:println_dsl, float=t]
@@ -166,28 +171,76 @@ LMS builds a complete intermediate representation of the code, optimizes it, and
 \end{lstlisting}
 
  
-In Listing \ref{lst:println_dsl}, we show a simplified version of a reusable DSL module for printing. In trait \code{PrintlnExp} we define how the \code{println} operation is linked to the intermediate representation. The \code{reflectEffect} method defines that the \code{profile} method has global side effects which signals the compiler that it can not be reordered with respect to other globally effectful statements or be moved across control structures. In the \code{PrintlnGen} trait, we define how the code for \code{println} is generated for Scala. 
+In Listing \ref{lst:println_dsl}, we show a simplified version of a reusable DSL
+module for printing. In trait \code{PrintlnExp} we define how the \code{println}
+operation is linked to the intermediate representation. The \code{reflectEffect}
+method defines that the \code{profile} method has global side effects which
+signals the compiler that it can not be reordered with respect to other globally
+effectful statements or be moved across control structures. In the
+\code{PrintlnGen} trait, we define how the code for \code{println} is generated
+for Scala.
 
-LMS has been used successfully by Brown et al. for heterogeneous parallel computing in project Delite \cite{brown_heterogeneous_2011}, Kossakowski et al. for a JavaScript DSL \cite{greg} and in the SIQ project for embedding queries into the Scala language.
+LMS has been used successfully by Brown et al. for heterogeneous parallel
+computing in project Delite \cite{brown_heterogeneous_2011}, Kossakowski et al.
+for a JavaScript DSL \cite{greg} and in the SIQ project for embedding queries
+into the Scala language.
 
 \subsection{LMS Optimizations}
 \label{subsec:lms-optimizations}
 % common compiler optimizations
-When writing DSLs, the DSL author can exploit their domain knowledge to apply high level optimizations and program transformations. Afterwards, the program is usually lowered to a representation closer to the actual generated code. LMS provides a set of common optimizations for the lowered code, which are: common subexpression elimination (CSE), dead code elimination (DCE), constant folding (CF) and function inlining. LMS also applies code motion, which can either: \emph{i)} move independent and side effect free blocks out of hot loops \emph{ii)} move code segments that are used inside conditionals but defined outside, closer to their use site.   
+When writing DSLs, the DSL author can exploit their domain knowledge to apply
+high level optimizations and program transformations. Afterwards, the program is
+usually lowered to a representation closer to the actual generated code. LMS
+provides a set of common optimizations for the lowered code, which are: common
+subexpression elimination (CSE), dead code elimination (DCE), constant folding
+(CF) and function inlining. LMS also applies code motion, which can either:
+\emph{i)} move independent and side effect free blocks out of hot loops
+\emph{ii)} move code segments that are used inside conditionals but defined
+outside, closer to their use site.
 
 % structures
-Another interesting optimization is the transformation of an array of structural types to a structure of arrays (AoS $\rightarrow$ SoA), each containing only primitive fields. This transformation removes unnecessary constructor invocations and enables DCE to collect unused fields of an structure. It can be applied to built-in data structures like tuples as well as immutable user-defined types. It is similar in effect to row storage in databases and it gives great performance and memory footprint improvements.
+Another interesting optimization is the transformation of an array of structural
+types to a structure of arrays (AoS $\rightarrow$ SoA), each containing only
+primitive fields. This transformation removes unnecessary constructor
+invocations and enables DCE to collect unused fields of an structure. It can be
+applied to built-in data structures like tuples as well as immutable
+user-defined types. It is similar in effect to row storage in databases and it
+gives great performance and memory footprint improvements.
 
 % loop fusion
-LMS also provides a very general mechanism for operation fusion that uses standard loops as the basic abstraction. It is better than existing deforestation approaches since it generalizes to loops and can apply both vertical and horizontal fusion. In vertical fusion, the algorithm searches for producer consumer dependencies among loops, and then fuses their bodies together. In horizontal fusion, independent loops of the same shapes are fused together and index variables are relinked to the fused loop's index variable. Fusion greatly improves performance as it removes intermediate data structures and uncovers new opportunities for other optimizations.
+LMS also provides a very general mechanism for operation fusion that uses
+standard loops as the basic abstraction. It is better than existing
+deforestation approaches since it generalizes to loops and can apply both
+vertical and horizontal fusion. In vertical fusion, the algorithm searches for
+producer consumer dependencies among loops, and then fuses their bodies
+together. In horizontal fusion, independent loops of the same shapes are fused
+together and index variables are relinked to the fused loop's index variable.
+Fusion greatly improves performance as it removes intermediate data structures
+and uncovers new opportunities for other optimizations.
 
-% iteration until the fixed point is reached 
-All the above mentioned algorithms are repeated for program scopes at one level until a fixed point is reached. Then the whole cycle is applied to the next level of scopes, thereby optimizing the whole program. In Listing \ref{lst:step-by-step-lms}, we present these optimizations on a single example which parses an array of complex numbers and prints only the real parts of them. Step \ref{lst:original}) shows the original program, \ref{lst:cse-inline}) shows how CSE extracts \code{size} and inlining replaces \code{parse} and \code{split} invocations with their bodies. In step \ref{lst:aos-soa}) the array \code{x} of complex numbers is split into two arrays of floating points. 
-In \ref{lst:fusion-motion}) the loops are fused together, which then allows code motion to move the constant pattern out of the loop and move the parsing of the real component into the conditional. The intermediate arrays can then be removed by DCE.
+% iteration until the fixed point is reached
+All the above mentioned algorithms are repeated for program scopes at one level
+until a fixed point is reached. Then the whole cycle is applied to the next
+level of scopes, thereby optimizing the whole program. In Listing
+\ref{lst:step-by-step-lms}, we present these optimizations on a single example
+which parses an array of complex numbers and prints only the real parts of them.
+Step \ref{lst:original}) shows the original program, \ref{lst:cse-inline}) shows
+how CSE extracts \code{size} and inlining replaces \code{parse} and \code{split}
+invocations with their bodies. In step \ref{lst:aos-soa}) the array \code{x} of
+complex numbers is split into two arrays of floating points.
+In \ref{lst:fusion-motion}) the loops are fused together, which then allows code
+motion to move the constant pattern out of the loop and move the parsing of the
+real component into the conditional. The intermediate arrays can then be removed
+by DCE.
 
-\subsection{Big Data Frameworks}
+\subsection{Distributed Batch Processing Frameworks}
 \label{subsed:big-data-frameworks}
 \tool generates Scala code for Crunch \cite{crunch}, Scoobi \cite{scoobi} and Spark \cite{spark-nsdi}. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a rather low level interface, in which the user must provide implementation for user classes. Scoobi on the other hand is a Scala framework, which features a declarative high level interface and creates efficient serialization for user classes with only a minimal amount of help required. 
 
-% explicit caching, low latency interactive data querying 
-Spark is a recent execution engine which makes better use of the cluster's memory, explicitly allowing the user to cache data. This allows huge speedups on iterative jobs which can reuse the same data multiple times, unlike with Hadoop. It also features a declarative high level interface and has support for multiple serialization frameworks and it also features a shell for low latency interactive data querying.
+% explicit caching, low latency interactive data querying
+Spark is a recent execution engine which makes better use of the cluster's
+memory, explicitly allowing the user to cache data. This allows huge speedups on
+iterative jobs which can reuse the same data multiple times, unlike with Hadoop.
+It also features a declarative high level interface and has support for multiple
+serialization frameworks and it also features a shell for low latency
+interactive data querying.

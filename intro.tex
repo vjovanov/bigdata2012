@@ -21,17 +21,36 @@ Because \tool includes common compiler and relational optimizations, as well as 
 % Our implementation
 
 % Contributions
-\tool makes following contributions to the state of the art:    
+This paper makes following contributions to the state of the art:    
 \begin{itemize}
 
-  \item We implement the \tool framework for big data processing. \tool has a high level programming model with carefully chosen restrictions that allow relational, domain specific and compiler optimizations but do not sacrifice generality.
-%  \item \todo{link generality to optimizations}We implement the \tool framework for big data processing. \tool has a slightly restricted and high level programming model but still applies relational, domain specific and compiler optimizations to achieve high performance.
+  \item We implement the \tool framework for distributed batch data
+  processing that provides a high level programming model with carefully chosen
+  restrictions. These restrictions allow relational, domain specific as well as
+  compiler optimizations but do not sacrifice program generality.
+% \item \todo{link generality to optimizations}We implement the \tool framework
+% for big data processing. \tool has a slightly restricted and high level
+% programming model but still applies relational, domain specific and compiler
+% optimizations to achieve high performance.
 
-  \item We introduce a novel projection insertion algorithm that operates across general program constructs like classes, conditionals, loops and user defined functions, takes the whole program into account and does not rely on safe assumptions which lead to missed optimization opportunities.  
+  \item We introduce a novel projection insertion algorithm that operates across
+  general program constructs like classes, conditionals, loops and user defined
+  functions, takes the whole program into account and does not rely on safe
+  assumptions which lead to missed optimization opportunities.
 
-  \item We show that \tool allows easy language extension and code portability for big data frameworks. 
+  \item We show that \tool allows easy language extension and code portability
+  for big data frameworks.
 
 \end{itemize} 
 
 % Sections
-In Section \ref{sec:background} we provide background on LMS, language virtualization and big data frameworks. Then, in Section \ref{sec:programming-model} we explain the programming model and present simple program examples. In Section \ref{sec:optimizations} we explain the novel projection insertion optimization algorithm in Section \ref{sec:field-reduction} and Section \ref{sec:fusion} explains the fusion optimization. We evaluate \tool in \ref{sec:evaluation} and discuss our approach in Section \ref{sec:discussion}. \tool is compared to state of the art in Section \ref{sec:related-work}, future work is in Section \ref{sec:future-work} and we conclude in Section \ref{sec:conclusion}.
+In /todo{special sign}Section \ref{sec:background} we provide background on LMS,
+language virtualization and big data frameworks. Then, in Section
+\ref{sec:programming-model} we explain the programming model and present simple
+program examples. In Section \ref{sec:optimizations} we explain the novel
+projection insertion optimization algorithm in Section \ref{sec:field-reduction}
+and Section \ref{sec:fusion} explains the fusion optimization. We evaluate \tool
+in \ref{sec:evaluation} and discuss our approach in Section
+\ref{sec:discussion}. \tool is compared to state of the art in Section
+\ref{sec:related-work}, future work is in Section \ref{sec:future-work} and we
+conclude in Section \ref{sec:conclusion}.

@@ -2,30 +2,29 @@
 \label{sec:introduction}
 
 % Motivation -- three different types programming models and their problems
-In the past decade, numerous systems for big data cluster computing have been
-studied \cite{dean_mapreduce:_2008, yu_dryadlinq:_2008-1, olston_pig_2008-1,
-thusoo_hive_2010-1, spark-nsdi}. Programming models of these systems impose a
+Over the course of the past decade, numerous systems for cluster computing on big data have been
+presented \cite{dean_mapreduce:_2008, yu_dryadlinq:_2008-1, olston_pig_2008-1,
+thusoo_hive_2010-1, spark-nsdi}. These systems' programming model impose a
 trade-off between generality, performance and productivity. Systems like Hadoop
 MapReduce \cite{hadoop}, and Dryad \cite{isard_dryad:_2007} provide a low level
-general purpose programming model that allows writing fine grained and optimized
-code. However, low level optimizations greatly sacrifice productivity
+general purpose programming model that allows one to write fine grained and optimized
+code. However, these low level optimizations greatly sacrifice productivity
 \cite{chambers_flumejava:_2010}. Models like Spark \cite{spark-nsdi}, FlumeJava
 \cite{chambers_flumejava:_2010} and Dryad/LINQ \cite{yu_dryadlinq:_2008-1}
 provide high level operations and general purpose programming models, but their
 performance is limited by glue code between high level operations. Also, many
-relational optimizations are impossible due to the lack of knowledge about the
+relational optimizations are impossible, due to a lack of knowledge about the
 program structure.
 
 Domain-specific approaches, like Pig \cite{olston_pig_2008-1} and Hive
-\cite{thusoo_hive_2010-1}, have a narrow, side effect free and
-domain-specific interface that allows them to be both productive and to apply relational optimizations.
+\cite{thusoo_hive_2010-1}, have a narrow, side-effect free and
+domain-specific interface that allows one to be both productive and to benefit from relational optimizations with them.
 However, they come with their own set of limitations. Their programming model is
-often too simple for a wide range of problems. This requires reverting to user
-defined functions, which are cumbersome and again hard to optimize, or to
-abandoning the model completely. Moreover, there is the high overhead of
+often too specific for a wide range of problems. 
+This requires one to write their own functions for general problems, which is cumbersome to do and again hard to optimize, and is otherwise a departure from the original programming model.
+Moreover, there is the high overhead of
 learning a new language.
-Proper tool support, like debugging tools and IDE support is often limited. It
-is also hard to extend these frameworks with optimizations for a new domain.
+It is also hard to extend these frameworks with optimizations for a new domain.
 
 % Existing Solutions to achieve this
 Recently there have been several efforts aimed at making programming

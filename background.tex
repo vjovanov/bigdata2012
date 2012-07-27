@@ -88,7 +88,7 @@ regular language constructs like conditionals, loops, variable declarations and
 pattern matching to regular method calls. For example, for the code \code{if (c)
 a else b}, the conditional is not executed but instead a method call is issued
 to the method \code{__ifThenElse(c, a, b)}. In case of deeply
-embedded DSLs this method overridden to create an intermediate
+embedded DSLs this method is overridden to create an intermediate
 representation (IR) node that represents the \code{if} statement.
 
 In Virtualized Scala, all embedded DSLs are written within DSL scopes. These
@@ -96,10 +96,10 @@ special scopes look like method invocations that take one by name parameter
 (block of Scala code). They get translated to the complete specification of DSL
 modules that are used in a form of a Scala trait mix-in
 composition\footnote[1]{Scala's support for multiple inheritance}. For example:
-\code{stivoDSL\{ \\\\ dsl code \}} gets translated into:
-\scode{new StivoDSL \{ def main()\{...\}\}} 
-This makes all the DSL functionality defined in StivoDSL visible in the body of
-the by name parameter passed to \tool method.
+\code{jetDSL\{ \\\\ dsl code \}} gets translated into:
+\scode{new JetDSL \{ def main()\{...\}\}} 
+This makes all the DSL functionality defined in JetDSL visible in the body of
+the by name parameter passed to the jetDSL method.
 Although modified, Virtualized Scala is fully binary compatible with Scala and
 can use all existing libraries.
 
@@ -111,7 +111,7 @@ can use all existing libraries.
 % lms basics
 \tool is built upon the Lightweight Modular Staging (LMS) library. LMS utilizes
 facilities provided by Virtualized Scala to build a modular compiler
-infrastructure for developing staged DSLs. It represents types in a DSL with
+infrastructure for developing staged DSLs. It represents types in a DSL with the
 polymorphic abstract data type \code{Rep[T]}. A term inside a DSL scope that has
 a type \code{Rep[T]} declares that once the code is staged, optimized, and
 generated, the actual result of the term will have type \code{T}. Since
@@ -125,7 +125,7 @@ free of type information and makes the user almost unaware of the \code{Rep}
 types. The only situation where \code{Rep} types are visible is in
 parameters of methods and fields of defined classes. In our experience
 with writing DSLs, \code{Rep} types do not present a problem but gathering
-precise and unbiased information on this topic is very difficult.
+precise and unbiased information on this topic is difficult.
 
 % modularity through scalable components abstraction.
 The modular design of LMS allows the DSL developer to arbitrarily compose the
@@ -134,14 +134,14 @@ simply done by mixing Scala traits together. The correctness of the composition
 and missing dependencies are checked by the type system. Code generation for a
 DSL is also modular, so the effort is almost completely spent on domain-specific
 aspects. LMS provides implementations for most of the Scala constructs and the
-most common libraries. This allows to make DSLs that are fairly general -
+most common libraries. This allows to make DSLs that are fairly general --
 comparable to standard Scala.
 
 % LMS effects
 Unlike Scala, which does not have an effect tracking mechanism, LMS provides
 precise information about the effect for each available operation. The DSL
 developer needs to explicitly specify the effects for each DSL operation he
-introduces. The LMS effect tracking system then calculates the effects summary
+introduces. The LMS effect tracking system then calculates the effect summary
 for each basic block in the DSL code. This allows the optimizer to apply code
 motion on the pure (side effect free) parts of the code. All implementations for
 standard library constructs that LMS provides such as strings, arrays, loops and
@@ -150,7 +150,7 @@ conditionals, already include effect tracking.
 % workflow + shallow embedding
 LMS builds a complete intermediate representation of the code, optimizes it, and
 then generates optimized code for the chosen target language. The generated code
-has then to be compiled itself, and then it can be invoked. If the compilation
+has then to be compiled itself, so it can be invoked. If the compilation
 delay is deemed inappropriate for a certain use case, it is possible to execute
 the code directly in Scala. A shallow DSL embedding can be achieved this way,
 instead of building the IR.
@@ -190,7 +190,7 @@ Kossakowski et al. for a JavaScript DSL \cite{greg}.
 \subsection{LMS Optimizations}
 \label{subsec:lms-optimizations}
 % common compiler optimizations
-When writing DSLs, the DSL author can exploit their domain knowledge to apply
+When writing DSLs, the DSL authors can exploit their domain knowledge to apply
 high level optimizations and program transformations. Afterwards, the program is
 usually lowered to a representation closer to the actual generated code. LMS
 provides a set of common optimizations for the lowered code, which are: common
@@ -198,7 +198,7 @@ subexpression elimination (CSE), dead code elimination (DCE), constant folding
 (CF) and function inlining. LMS also applies code motion, which can either:
 \emph{i)} move independent and side effect free blocks out of hot loops
 \emph{ii)} move code segments that are used inside conditionals but defined
-outside, closer to their use site.
+outside closer to their use site.
 
 % structures
 Another interesting optimization is the transformation of an array of structural
@@ -210,7 +210,7 @@ user-defined types. It is similar in effect to row storage in databases and it
 gives great performance and memory footprint improvements.
 
 % loop fusion
-LMS also provides a very general mechanism for operation fusion that uses
+LMS also provides a very general mechanism for loop fusion that uses
 standard loops as the basic abstraction. It is better than existing
 deforestation approaches since it generalizes to loops and can apply both
 vertical and horizontal fusion. In vertical fusion, the algorithm searches for
@@ -223,31 +223,29 @@ and uncovers new opportunities for other optimizations.
 % Listing
 In Listing \ref{lst:step-by-step-lms}, we present these optimizations on a
 single example which parses an array of complex numbers and prints only the real parts of them.
-Step \ref{lst:original}) shows the original program, \ref{lst:cse-inline}) shows
-how CSE extracts \code{size} and inlining replaces \code{parse} and \code{split}
-invocations with their bodies. In step \ref{lst:aos-soa}) the array \code{x} of
+Step \ref{lst:original}) shows the original program, step \ref{lst:cse-inline})
+shows how CSE extracts \code{size} and inlining replaces \code{parse} and \code{split}
+invocations with their bodies. In step \ref{lst:aos-soa}) the array $x$ of
 complex numbers is split into two arrays of floating points.
-In \ref{lst:fusion-motion}) the loops are fused together, which then allows code
-motion to move the constant pattern out of the loop and move the parsing of the
+In step \ref{lst:fusion-motion}) the loops are fused together, which then allows
+code motion to move the constant pattern out of the loop and move the parsing of the
 real component into the conditional. The intermediate arrays can then be removed
 by DCE.
 
 \subsection{Distributed Batch Processing Frameworks}
 \label{subsed:big-data-frameworks}
 
-\tool generates Scala code for Crunch \cite{crunch}, Scoobi \cite{scoobi} and
-Spark \cite{spark-nsdi}. Both Crunch and Scoobi use Hadoop as the execution
-engine and provide an MSCR implementation as presented in
+\tool generates Scala code for Crunch \cite{crunch} and Spark \cite{spark-nsdi}.
+Crunch uses Hadoop as the execution engine and provides a collection-like
+interface, backed by a MSCR implementation as presented by Dean et.\ al.\
 \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a
-rather low level interface, in which the user must provide implementation for
-user classes. Scoobi on the other hand is a Scala framework, which features a
-declarative high level interface and creates efficient serialization for user
-classes with only a minimal amount of help required.
+rather low level interface, the user must for example specify the serialization
+for user classes.
 
 % explicit caching, low latency interactive data querying
 Spark is a recent execution engine which makes better use of the cluster's
 memory, explicitly allowing the user to cache data. This allows huge speedups on
-iterative jobs which can reuse the same data multiple times, unlike with Hadoop.
-It also features a declarative high level interface and has support for multiple
-serialization frameworks and it also features a REPL for low latency
-interactive data querying.
+iterative jobs which can reuse the same data multiple times compared to Hadoop.
+Like Crunch it provides a collection-like interface, but it is more high-level.
+Spark has support for multiple serialization frameworks and it also features a
+REPL for low latency interactive data querying.

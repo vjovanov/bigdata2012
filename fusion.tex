@@ -9,9 +9,9 @@ opportunities for the optimizations described in Section
 passed to and returned from the closure. In both the push and the pull data flow
 model this enforces expensive virtual method calls \cite{murray_steno:_2011} for
 each data record processed. To reduce this overhead and to provide more
-oppurtunities for compiler optimizations we have implemented fusion of monadic
-operations \code{map}, \code{flatMap} and \code{filter} through the underlying
-loop fusion algorithm described in Section \ref{subsec:lms-optimizations}.
+opportunities for compiler optimizations we have implemented fusion of
+the monadic operations \code{map}, \code{flatMap} and \code{filter} through the
+underlying loop fusion algorithm described in Section \ref{subsec:lms-optimizations}.
 
 The loop fusion optimization described in Section \ref{subsec:lms-optimizations}
 supports horizontal and vertical fusion of loops as well as fusion of nested
@@ -40,11 +40,11 @@ Lowering Transformations:
 \begin{lstlisting}
   $out = map(in, op) \rightarrow  $
     $loop(shape\_dep(in, prevent\_fusion(in)), index, \{$
-      $yield(out, op(iterator\_value(in))\\$
+      $yield(out, op(iterator\_value(in)))\\$
     $\})$
   $out = filter(map, op) \rightarrow$
     $loop(shape\_dep(in, prevent\_fusion(in)), index, \{$
-      $if (op(iterator\_value(in))$
+      $if (op(iterator\_value(in)))$
 	$yield(out, iterator\_value(in)) $
     $\})$
   $out = flatMap(in, op) \rightarrow$
@@ -62,22 +62,25 @@ mapping to the operations in the programming model. Each monadic operation is
 represented by the corresponding IR node which carries its data and control flow
 dependencies and has one predecessor and one or more successors. On these IR
 nodes we first apply a lowering transformation, which translates monadic
-operations to their equivalent loop based representation. Described
-transformation is achieved by the program translation described in Listing
-\ref{lst:lowering}. These rules introduce two new IR nodes: \emph{i)}
+operations to their equivalent loop based representations. We show the program
+translation for this transformation in Listing \ref{lst:lowering}.
+% This
+%transformation is achieved by the program translation described in Listing
+%\ref{lst:lowering}. 
+These rules introduce two new IR nodes: \emph{i)}
 $shape\_dep(n, m)$ that carries the explicit information about its vertical
 predecessor $n$ and a $prevent\_fusion$ bit $m$, and \emph{ii)}
 \code{$iterator\_value$} that represents reading from an iterator of the
 preceding \code{DColl}. $shape\_dep$ replaces the shape variable (e.g.
 \code{in.size}) of the loop IR node. The \emph{yield} operation represents
 storing to the successor collection and is used in the LMS fusion algorithm for
-correct merging of two loops.
+correct fusion of two loops.
 
 For the back-end frameworks that \tool supports, the fusion operation is not
-possible for all operations in the data flow graph. If one node has multiple
+possible for all operations in the data-flow graph. If one node has multiple
 successors, after fusion, it would form a loop that yields values to multiple
 \code{DColl}s. This would be possible for Hadoop, as it supports multiple
-outputs in the map phase but is not currently supported in Spark, Scoobi
+outputs in the map phase but is not currently supported in Spark
 and Crunch. To prevent fusion of such loops we added the $prevent\_fusion$ bit
 to the $shape\_dep$ node. We also prevent horizontal fusion by making
 $shape\_dep$ nodes always different in comparison.
@@ -92,7 +95,7 @@ class) that the framework provides. With this approach we could also generate
 code directly for Hadoop MapReduce which would result in a single highly
 optimized loop per \code{Mapper}. However, after doing experiments we concluded
 that the gain is not significant compared to using higher level back-ends.
-Therefore, as an alternative, we used the frameworks Scoobi and Crunch.
+Therefore, as an alternative, we used the frameworks Crunch.
 
 
 Unlike MapReduce based back-ends, Spark's design uses the pull data-flow model,

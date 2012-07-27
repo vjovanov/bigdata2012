@@ -36,8 +36,9 @@ Framework  & Operation & Transformation\\ \hline
 								& \scode{takeSample(p: Rep[Double])} 					& \scode{DColl[T] => Iter[T]}\\ 
 								& \scode{materialize()} 					& \scode{DColl[T] => Iter[T]}\\ \hline
 \multirow{2}{*}{Spark}			        & \scode{cache()} 								& \scode{DColl[T] => DColl[T]}\\ %\cline{2-3} 
-								& \scode{sort(cmp: Rep[Comparator[T]])}			& \scode{DColl[T] => DColl[T]}\\ \hline
-Crunch						        & \scode{sort(asc: Rep[Boolean])}					& \scode{DColl[T] => DColl[T]} \\ \hline
+								& \scode{sortByKey(asc: Rep[Boolean])}			& \scode{DColl[(K <: Ordered,
+								V)] => DColl[(K, V)]}\\ \hline Crunch						        & \scode{sort(asc:
+								Rep[Boolean])}					& \scode{DColl[T] => DColl[T]} \\ \hline
 \end{tabular}
 \caption{DColl operations and their framework support. For clarity reasons, \scode{Iter} represents the Scala \scode{Iterable} and \scode{Rep[_]} types in the rightmost column are omitted.  }
 \label{tbl:operations}
@@ -45,15 +46,15 @@ Crunch						        & \scode{sort(asc: Rep[Boolean])}					& \scode{DColl[T] => D
 
 Operations \code{DColl()} and \code{save} are used for loading and storing data
 to the persistent storage. \code{map, filter} and \code{flatMap} are standard
-methods for transforming the data by applying the argument function. Thes can
+methods for transforming the data by applying the argument function. These can
 also be used with Scala \code{for} comprehensions. Operations
 \code{groupByKey}, \code{join}, \code{cogroup}, \code{cross} and \code{reduce}
-are applicable only if the elements of \code{DColl} form a key/value tuple.
+are applicable only if the elements of \code{DColl} form a key/value pair.
 \code{reduce} is used for general aggregation after the \code{groupByKey},
 \code{join, cogroup} and \code{cross} are different types of relational joins.
 \code{sort} sorts the dataset, \code{partitionBy} defines partitioning among
-machines, and \code{cache} signals that data should be kept in cluster memory
-for faster future accesses. Two \code{DColl}s can be concatenated by the
+machines, and \code{cache} signals that the data should be kept in cluster
+memory for faster future accesses. Two \code{DColl}s can be concatenated by the
 \code{++} operation. A DColl can be materialized on the master node by calling
 \code{materialize}.
 
@@ -64,7 +65,7 @@ extra line of code per method.
 
 % Example word count application
 In Listing \ref{lst:wordcount}, we show an implementation of a simple word count
-example. We can notice that the code does not show any \code{Rep} types.
+example. We notice that the code does not show any \code{Rep} types.
 Since a large subset of the Scala library is implemented as a DSL module, functions like
 \code{split} and string concatenation are used the same way as they are in
 Scala. In the second line, the regular (with arguments wrapped in \code{Rep})
@@ -75,9 +76,9 @@ other languages which requires a considerable amount of boilerplate code.
 % Word count showing generality, rep clean api.
 \begin{lstlisting}[name=code, caption=An example of a simple word count
 program., captionpos=b, label=lst:wordcount, float=t] 
-val read = DColl("hdfs://..." + input) 
+val read = DColl("hdfs://..." + input)
 val parsed = read.map(WikiArticle.parse(_))
-parsed.flatMap(_.split("\\s"))
+parsed.flatMap(_.plaintext.split("\\s"))
   .map(x => (x, 1))
   .groupByKey()
   .reduce(_ + _)
@@ -85,7 +86,7 @@ parsed.flatMap(_.split("\\s"))
 \end{lstlisting}
 
 All methods except for \code{cache} and \code{sort} can be mapped to methods in
-Scoobi, Spark and Crunch. Other back-ends (including Dryad) provide these
+Spark and Crunch. Other back-ends (including Dryad) provide these
 primitives as well. The \code{cache} method currently works with Spark only but
 it can be added to the interface of other back-ends, in which it would have no
 effect, such that the code stays portable. From existing frameworks today only

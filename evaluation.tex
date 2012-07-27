@@ -60,7 +60,7 @@ We made the \tool code, as well as the generated code, available on
 In this benchmark we evaluate the performance of \tool's compiler optimizations
 without focusing on projection insertion. We chose a word count application
 that, prior to the inexpensive network shuffle, parses the input with 5 regular
-expressions making this job CPU bound. For this evaluation we start with an the
+expressions making this job CPU bound. For this evaluation we start with a
  na\"{\i}ve version of the program and add optimizations one by one. We first add
 the operation fusion and projection insertion optimizations. We then include
 code motion that removes regular expression compilation out of hot loops. Next
@@ -69,15 +69,15 @@ optimized automaton regular expression library.
 
 Our input is a 124 GB set of plain text version of Freebase Wikipedia articles.
 The program uses five regular expressions to remove words of the input that were
-not parts of the plaintext in the article. This benchmark does not benefit from
+not parts of the plain text in the article. This benchmark does not benefit from
 projection insertion but we include it for the comparison
 with the Pig framework in Section \ref{subsec:pig}.
 
 In Figure \ref{fig:word-count} we show the job times for these versions
 normalized to the hand-optimized program version. Compared to the na\"{\i}ve
 version, the performance improvements of
-all optimizations combined are from 40\% for Crunch
-and 143\% for Spark. The base performance of the frameworks differ
+all optimizations combined range from 40\% for Crunch
+to 143\% for Spark. The base performance of the frameworks differ
 by a large margin for this benchmark. In
 Spark, we notice larger benefits from our optimizations. We argue that it has
 significantly smaller IO overhead so that the optimizations have a bigger
@@ -131,12 +131,12 @@ hand-optimized native version (5\% slower).
 
 % Pig Comparison
 In Figure \ref{fig:pig} we compare the hand-optimized Hadoop and Pig programs
-with our most optimized program versions.
-The y-axis is normalized to the hand-optimized Hadoop and overall
+with our most optimized program versions targeting Crunch and Spark.
+The y-axis is normalized to the hand-optimized Hadoop and the overall
 job time is stated above the bar. 
 
 We notice that our generated Crunch programs are faster than Pig by 53\% on
-TPCH Q12 and 65\% on Wordcount. For the word count benchmark even the naive
+TPCH query 12 and 65\% on Wordcount. For the word count benchmark even the naive
 version is faster than Pig by 18\%, we believe this to be due to the high
 overhead of Pig's String operators. We further see that for TPCH Q12, the
 performance of our program version is almost as fast as the hand-optimized

@@ -1,5 +1,5 @@
 \documentclass{acm_proc_article-sp}
-
+\pagenumbering{arabic}
 
 \usepackage{listings}
 \usepackage[T1]{fontenc}
@@ -12,15 +12,14 @@
 \usepackage{xspace}% space in macros 
 \usepackage{multirow}
 \usepackage[font=bf,labelfont=bf]{caption}
-\usepackage{etoolbox}
-\patchcmd{\maketitle}{\@copyrightspace}{}{}{}
+%\usepackage{etoolbox}
+%\patchcmd{\maketitle}{\@copyrightspace}{}{}{}
 % fixes caption package
-\DeclareCaptionType{copyrightbox} 
+\DeclareCaptionType{copyrightbox}
 
 \usepackage{subcaption}
 \usepackage{tabularx}
-
-
+\setpagenumber{1}
 % ----- begin macros
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,%
@@ -94,7 +93,7 @@
 \newcommand{\coll}{DColl\xspace}
 \newcommand{\NL}{\\}% \newcommand{\NL}{}
 \newcommand{\PB}{\pagebreak} % \newcommand{\PB}{}
-
+\pagestyle{empty}
 \begin{document}
  \conferenceinfo{BigData '12,} {August 31. 2012, Istanbul, Turkey}  
 
@@ -109,7 +108,7 @@
   %\LaTeX$2_\epsilon$\ and BibTeX} at
   %\texttt{www.acm.org/eaddress.htm}} 
 
-
+  
   %
   % Authors
   % 

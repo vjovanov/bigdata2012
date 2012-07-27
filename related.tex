@@ -3,26 +3,26 @@
 
 % Pig
 Pig \cite{olston_pig_2008-1} is a framework for writing jobs for the Hadoop
-platform using an imperative domain-specific language called Pig latin. Pig
-latin's restricted interface allows the Pig system to apply relational
+platform using an imperative domain-specific language called Pig Latin. Pig
+Latin's restricted interface allows the Pig system to apply relational
 optimizations that include operator rewrites, early projection and early
 filtering to achieve good performance.
 It has extensive support for relational operations and allows the user to choose
 between different join implementations with varying performance characteristics.
-Pig latin users need to learn a new language which is not the case with
+Pig Latin users need to learn a new language which is not the case with
 frameworks such as Hadoop, Hive and Crunch. It does not include user defined
 functions, the user needs to define them externally in another language, which
-will often prevent optimizations as Pig can not analyze those. Pig latin is not
+will often prevent optimizations as Pig can not analyze those. Pig Latin is not
 Turing complete as it does not include control structures itself.
 The language is not statically type checked so runtime failures are common and
-time consuming. Also, pure Java approaches benefit from a rich ecosystem of
-productivity tools.
+time consuming. Also, Pig can not profit from the rich ecosystem
+of productivity tools for Java.
 
 Even though \tool also adopts a domain-specific approach, it is deeply embedded
 in Scala, Turing complete and allows the user to easily define functions which
 do not disable the optimizations. Currently \tool does not have support for many
 relational optimizations. However, it includes compiler optimizations and it is
-well extensible.
+extensible.
 
 % Steno
 Steno \cite{murray_steno:_2011} is a .NET library that, through runtime code

@@ -20,14 +20,14 @@ One of the caveats of the staged DSL approach is that the program staging,
 compilation, generation and compilation of the generated code increases the
 startup time of the task. For the benchmarks we tested this process takes
 between 4 and 14 seconds. Although this can be significant, it needs
-to be only done once on a single machine so we believe it is not a limiting
+to be done only once on a single machine so we believe it is not a limiting
 factor for batch jobs.
 
 The only case where compile time becomes relevant is with back-ends that support
 interactive data analytics, like the Spark framework. Spending more than a
 couple of seconds for compilation would affect the interactivity.
 
-In cases for which the data processing time is comparable to the user reaction
+In cases where the data processing time is comparable to the user reaction
 time, the optimizations we perform are not needed. We could implement a version
 of \tool that does not perform staging but instead executes the original code
 straight away.
@@ -35,12 +35,12 @@ straight away.
 %optimizations are not needed and we could implement a version of \tool which
 % does not generate the IR, but executes the original code straight away. 
 This feature is not
-implemented in \tool, but Kossakowski et al. \cite{greg} have done this for the
+implemented in \tool, but Kossakowski et al. \cite{greg} have done this for a
 Javascript DSL.
 
 % Job specific tuning
-Each job requires a framework specific configuration for its optimal execution
+Each job requires a framework-specific configuration for its optimal execution
 (e.g. the number of mappers, reducers, buffer sizes etc.). Our current API does
 not include tuning of such parameters, but in the future work we want to
-introduce a configuration part of the DSL to unify configuration of different
-back-ends.
+introduce a configuration part of the DSL to unify the configuration of
+different back-ends.

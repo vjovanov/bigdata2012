@@ -51,9 +51,9 @@ Since we support nested classes of a finite level, the nested fields of a class
 form a tree, and if a field in such a tree is alive, it requires liveness of all
 its ancestors. We call the path of a nested field to the root of the tree an
 \emph{access path}, and represent it using a string. The Figure
-\ref{fig:type_tree} shows the tree of nested fields for the class Tuple2[String,
-A]. The nodes describe the class of a parents field, while the edges represent
-the field name. The \emph{access path} to each nested field is formed by
+\ref{fig:type_tree} shows the tree of nested fields for the class
+\code{Tuple2[String, A]}. The nodes describe the class of a parents field, while
+the edges represent the field name. The \emph{access path} to each nested field is formed by
 concatenating the edges with a separating dot. In the Figure, the access path
 for the field \code{id} in class \code{B} would be \code{_2.b.id}. For each edge
 in the data-flow graph that our operations form, we need to compute the set of
@@ -84,7 +84,7 @@ primitives:
 \item \emph{Access paths for a type}: Given a type, this primitive creates
 access paths for all the nested fields within it. This primitive can for example
 be used to create the set of access paths needed for a \code{save} operation.
-For the class A, it returns the access paths ${id, b, b.id}$.
+For the class \code{A}, it returns the access paths ${id, b, b.id}$.
 \item \emph{Closure analysis}: This primitive analyzes a closure and returns a
 set of all access paths relative to that closure's input type.
 \item \emph{Rewrite access paths}: Several operations have semantics which

@@ -12,6 +12,8 @@
 \usepackage{xspace}% space in macros 
 \usepackage{multirow}
 \usepackage[font=bf,labelfont=bf]{caption}
+\usepackage{etoolbox}
+\patchcmd{\maketitle}{\@copyrightspace}{}{}{}
 % fixes caption package
 \DeclareCaptionType{copyrightbox} 
 
@@ -94,9 +96,7 @@
 \newcommand{\PB}{\pagebreak} % \newcommand{\PB}{}
 
 \begin{document}
-  %\conferenceinfo{BigData'12,} {(date and location)}
-  %\CopyrightYear{2012}
-  %\copyrightdata{(provided by acm)}
+ \conferenceinfo{BigData '12,} {August 31. 2012, Istanbul, Turkey}  
 
   %
   % Title

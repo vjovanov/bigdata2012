@@ -14,8 +14,7 @@ apply projection insertion, which eliminates unused data, as well as code
 motion and operation fusion to highly optimize the performance critical path of
 the program. The language embedding and a high-level interface allow \tool
 programs to be both expressive, resembling regular Scala code, and optimized.
-Modular design allows users to extend \tool with modules, which specify an
-abstract interface and how to generate high performance code for it. Through a
-modular code generation scheme, \tool can execute programs on both Spark and
+Its modular design allows users to extend \tool with modules that produce highly performant code. Through a
+modular code generation scheme, \tool can generate programs for both Spark and
 Hadoop. Compared with na\"{\i}ve implementations we achieve 143\% speedups on
 Spark and 126\% on Hadoop.

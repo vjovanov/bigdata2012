@@ -28,29 +28,29 @@ Proper tool support, like debugging tools and IDE support is often limited. It
 is also hard to extend these frameworks with optimizations for a new domain.
 
 % Existing Solutions to achieve this
-Recently there have been several solutions that try to make programming
+Recently there have been several efforts aimed at making programming
 distributed batch processing efficient, productive and general at the same time.
 Steno \cite{murray_steno:_2011} implements an innovative runtime code generation
 scheme that eliminates iterators in Dryad/LINQ queries. It operates over flat
 and nested queries and produces a minimal number of loops without any iterator
 calls. Manimal \cite{jahani_automatic_2011} and HadoopToSQL
 \cite{iu_hadooptosql:_2010} apply byte code analysis, to extract information
-about unused data columns and selection conditions; as a result to gain enough
+about unused data columns and selection conditions. The reason for doing this is to gain enough
 knowledge to apply common relational database optimizations for projection and
 selection. However, since these solutions use static byte code analysis they
 must be safely conservative which can lead to missed optimization opportunities.
 
 % General, restricted optimizations modular/extensible portable
-This paper presents \tool a new domain-specific framework for distributed batch
+This paper presents \tool, a new domain-specific framework for distributed batch
 processing that provides a high level declarative interface similar to
-Dryad/LINQ and Spark. \tool builds upon language virtualization
+Dryad/LINQ and Spark. \tool is built upon language virtualization
 \cite{moors_scala-virtualized_2012} and lightweight modular staging
-\cite{rompf_lightweight_2010} (LMS) and has the same syntax and semantics as the
-regular Scala language with only a few restrictions.
-Because \tool includes common compiler and relational optimizations, as well as
-domain-specific ones, it produces efficient code closely comparable with hand
-optimized versions.
-It is designed in a composable and modular way - the code generation is
+\cite{rompf_lightweight_2010} (LMS), and has the same syntax and semantics as the
+standard Scala programming language, with only a few restrictions.
+Because \tool includes common compiler optimizations and relational optimizations, as well as
+domain-specific optimizations, it produces efficient code which closely resembles hand
+optimized implementations.
+Furthermore, it is designed in a composable and modular way - the code generation is
 completely independent of the parsing and optimizations - and allows extensions
 for supported operations, optimizations and back-ends.
 
@@ -59,14 +59,14 @@ This paper makes following contributions to the state of the art:
 \begin{itemize}
 
   \item We implement the \tool framework for distributed batch data
-  processing that provides a general high level programming model with carefully
+  processing, which provides a general high level programming model with carefully
   chosen restrictions. These restrictions allow relational, domain-specific as well as
-  compiler optimizations but do not sacrifice program generality.
+  compiler optimizations, but do not sacrifice program generality.
 
   \item We introduce a novel projection insertion algorithm that operates across
   general program constructs like classes, conditionals, loops and user defined
-  functions, takes the whole program into account and does not rely on safe
-  assumptions which lead to missed optimization opportunities.
+  functions. It takes the whole program into account, and can safely apply optimizations 
+  without being overly conservative due to the available effect information.
 
   \item We show that \tool allows easy language extension and code portability
   for distributed batch processing frameworks.

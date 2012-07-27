@@ -131,12 +131,12 @@ hand-optimized native version (5\% slower).
 
 % Pig Comparison
 In Figure \ref{fig:pig} we compare the hand-optimized Hadoop and Pig programs
-with our most optimized program versions.
-The y-axis is normalized to the hand-optimized Hadoop and overall
+with our most optimized program versions targeting Crunch and Spark.
+The y-axis is normalized to the hand-optimized Hadoop and the overall
 job time is stated above the bar. 
 
 We notice that our generated Crunch programs are faster than Pig by 53\% on
-TPCH Q12 and 65\% on Wordcount. For the word count benchmark even the naive
+TPCH query 12 and 65\% on Wordcount. For the word count benchmark even the naive
 version is faster than Pig by 18\%, we believe this to be due to the high
 overhead of Pig's String operators. We further see that for TPCH Q12, the
 performance of our program version is almost as fast as the hand-optimized

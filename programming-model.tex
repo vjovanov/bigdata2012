@@ -64,8 +64,8 @@ extra line of code per method.
 
 % Example word count application
 In Listing \ref{lst:wordcount}, we show an implementation of a simple word count
-example, in which the code does not have any visible \code{Rep} types. Since a
-large subset of the Scala library is implemented as a DSL module, functions like
+example. We can notice that the code does not show any \code{Rep} types.
+Since a large subset of the Scala library is implemented as a DSL module, functions like
 \code{split} and string concatenation are used the same way as they are in
 Scala. In the second line, the regular (with arguments wrapped in \code{Rep})
 method \code{parse} is passed to the \code{map} method. Pig and Hive do not have
@@ -73,14 +73,15 @@ functions in their own language, but allow writing user defined functions in
 other languages which requires a considerable amount of boilerplate code.
 
 % Word count showing generality, rep clean api.
-\begin{lstlisting}[name=code, caption=Example of word count program where type inference removes the need to declare any \scode{Rep} types., captionpos=b, label=lst:wordcount, float=t]
-    val read = DColl("hdfs://..." + input)
-    val parsed = read.map(WikiArticle.parse(_))
-    parsed.flatMap(_.split("\\s"))
-      .map(x => (x, 1))
-      .groupByKey()
-      .reduce(_ + _)
-      .save("hdfs://..." + output)
+\begin{lstlisting}[name=code, caption=An example of a simple word count
+program., captionpos=b, label=lst:wordcount, float=t] 
+val read = DColl("hdfs://..." + input) 
+val parsed = read.map(WikiArticle.parse(_))
+parsed.flatMap(_.split("\\s"))
+  .map(x => (x, 1))
+  .groupByKey()
+  .reduce(_ + _)
+  .save("hdfs://..." + output)
 \end{lstlisting}
 
 All methods except for \code{cache} and \code{sort} can be mapped to methods in

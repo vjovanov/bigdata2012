@@ -97,9 +97,16 @@ optimized loop per \code{Mapper}. However, after doing experiments we concluded
 that the gain is not significant compared to using higher level back-ends.
 Therefore, as an alternative, we used the frameworks Crunch.
 
-
 Unlike MapReduce based back-ends, Spark's design uses the pull data-flow model,
-implemented through iterators. Generating code for the pull data-flow model from
-the loop based model (push data-flow) proved to be non-trivial. After evaluating
-different types of queues and array buffers we have decided to buffer
-intermediate results in a 4 MB array.
+implemented through iterators. When generating code for the pull data-flow
+model from the loop based model (push data-flow) we had to insert a buffer from which data
+can be pulled by an interator.
+
+% How to link to contributions
+The overall effect of the fusion optimization is that it removes all superfluous
+method calls and data structures from the program. Additionally, fused
+operations provide more oppurtunities for other compiler optimizations.
+This results in generated programs which are very close to the hand optimized
+versions, although they were written in a high-level declarative way. To our
+knowledge there are no distributed batch processing frameworks that achieve this
+today.

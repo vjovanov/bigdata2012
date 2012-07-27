@@ -7,10 +7,10 @@
 \end{figure}
 We evaluate the optimizations by comparing the performance of three
 programs:
-\emph{i)} A word count with prior text processing, \emph{ii)} TPCH \cite{tpch}
-query 12 and a  \emph{iii)} k-means application. To evaluate the extensibility
-of the framework we introduce a new DSL component that represents vectors in the
-k-means benchmark.
+\emph{i)} a word count with prior text processing, \emph{ii)} TPCH \cite{tpch}
+query 12 and \emph{iii)} a k-means application. To evaluate the extensibility
+of the framework we introduce a new \tool module that represents
+vectors in the k-means benchmark.
 
 All experiments were performed on the Amazon EC2 Cloud, using 20 "m1.large"
 nodes as slaves and one as a master. They each have 7.5 GB of memory, 2 virtual
@@ -18,23 +18,23 @@ cores with 2 EC2 compute units each, 850 GB of instance storage distributed over
 2 physical hard drives and they have a 1 Gb/s network interface. Prior to the
 experiments we have measured up to 50 MB/s between two nodes. For the Hadoop
 experiments we used the cdh3u4 Cloudera Hadoop distribution. On top of it we
-used Crunch version 0.2.4 and Scoobi 0.4.0. We used Whirr 0.7.1 \cite{whirr} to
+used Crunch version 0.2.4. We used Whirr 0.7.1 \cite{whirr} to
 set up the cluster, ensured that both hard drives were used for the
 distributed file system and set the setting to reuse the JVM for
 multiple map tasks.
 For benchmarking Spark we used Spark version 0.5.0 for the tests, and
 started the cluster using Spark's EC2 script.
 For Spark we had to tweak settings to ensure that the programs run
-correctly, including increasing the amount of available memory to 6 Gb and
+correctly, including increasing the amount of available memory to 6 GB and
 setting the parallelism to a value found after experimentation.
 
 % Regular expressions
-While doing preliminary benchmarking we found some easy tweaks focused on
-regular expressions that we needed to include in \tool in order to have a fair
+While doing preliminary benchmarking we found some simple optimizations focused
+on regular expressions that we needed to include in \tool in order to have a fair
 comparison against Pig, which contains them. We implemented a fast splitter,
 which uses an efficient character comparison whenever the regular expression
-allows this. Additionally we select based on the regular expression between
-Java's implementation and the dk.brics.automaton library \cite{mollerdk}.
+allows this. Additionally, based on the regular expression pattern we select
+between Java's implementation and the \emph{dk.brics.automaton} library \cite{mollerdk}.
 % For a fairer comparison with Pig we adapted some of their regular expression
 % optimizations for our program. Pig makes use of a faster library
 % \cite{mollerdk} and implements an optimized splitting function when the
@@ -43,12 +43,11 @@ Java's implementation and the dk.brics.automaton library \cite{mollerdk}.
 % best variant for each expression and operation.
 
 % Data Serialization
-For serialization of data we used \tool to generate specialized code for
-serialization of data to achieve minimal overhead for Crunch. 
+For serialization of data we used \tool to generate specialized code to achieve minimal overhead for Crunch. 
 For Spark we used the standard serialization mode which uses Kryo. All
 benchmarks were run three times and in the figures we present the average
-value. We also computed the standard deviations but we omitted them since they
-are smaller than \todo{3\%} in all the experiments.
+value. We also computed the standard deviations, but we omitted them since they
+are smaller than 3\% in all the experiments.
 
 We made the \tool code, as well as the generated code, available on
 \url{https://github.com/jet-framework/jet}.
@@ -58,34 +57,31 @@ We made the \tool code, as well as the generated code, available on
 \subsection{Parsing and Word Count}
 \label{subsec:parsing-word-count}
 
-In this benchmark we evaluate the performance of \tool compiler optimizations
-without focusing on projection insertion. We choose a word count application
+In this benchmark we evaluate the performance of \tool's compiler optimizations
+without focusing on projection insertion. We chose a word count application
 that, prior to the inexpensive network shuffle, parses the input with 5 regular
 expressions making this job CPU bound. For this evaluation we start with an the
-original version of the program and add optimizations one by one. We first add
+ na\"{\i}ve version of the program and add optimizations one by one. We first add
 the operation fusion and projection insertion optimizations. We then include
 code motion that removes regular expression compilation out of hot loops. Next
-we add the fast splitter and for the fully optimized version we use the
+we add the fast splitter and for the fully optimized version we also use the
 optimized automaton regular expression library.
 
 Our input is a 124 GB set of plain text version of Freebase Wikipedia articles.
-The program uses five regular expressions to remove parts of the input that were
+The program uses five regular expressions to remove words of the input that were
 not parts of the plaintext in the article. This benchmark does not benefit from
 projection insertion but we include it for the comparison
 with the Pig framework in Section \ref{subsec:pig}.
 
 In Figure \ref{fig:word-count} we show the job times for these versions
-normalized to the original program version. Performance improvements of all
-optimizations combined are from \todo{29\%} for Scoobi, \todo{33\%} for Crunch
-and \todo{79\%} for Spark. \todo{The base performance of the frameworks differ
-by a large margin for this benchmark. Scoobi profits the most in this case from the fusion which indicates
-that the framework imposes additional overhead for declarative operations. In
+normalized to the hand-optimized program version. Compared to the na\"{\i}ve
+version, the performance improvements of
+all optimizations combined are from 40\% for Crunch
+and 143\% for Spark. The base performance of the frameworks differ
+by a large margin for this benchmark. In
 Spark, we notice larger benefits from our optimizations. We argue that it has
 significantly smaller IO overhead so that the optimizations have a bigger
-impact. Also, we notice that fusion optimization with projection insertion is
-slower than the original program for Spark. This result does not match our
-experiments in a smaller cluster setup, we believe that it could be caused by a
-straggler node in the cloud environment.}
+impact. 
 
 % TPCH q12
 \subsection{TPCH Query 12}
@@ -100,19 +96,16 @@ to the na\"{i}ve version. As the data set we use 200 GB plain text input
 generated by the DbGen tool \cite{tpch}.
 
 In Figure \ref{fig:tpch} we show job times for different optimizations
-normalized to the original program version on different frameworks. \todo{We
-notice that projection insertion gives 20\% percent better performance on Crunch and
-11\% on Scoobi. On Spark, the projection insertion improves the performance by
-40\%, significantly more than for the Hadoop based frameworks. We believe the
-difference is caused by Hadoop spills of the data to disk earlier, while Spark
-tries to keep it in the memory before it spills it. Spark is therefore very
-sensitive to memory overhead of the large \code{join}.}
+normalized to the original program version on different frameworks. We notice
+that projection insertion gives 30\% percent better performance on Crunch while
+on Spark the projection insertion improves the performance by 35\%. 
 
+\todo{MORE!!!!}
 % We believe that either network shuffle or the \code{join} operation are less
 % optimal in Spark.
-\todo{In this benchmark the optimizations interact with each other. The absolute
-performance gain for combined optimizations is 3\% greater for Crunch, equal for
-Scoobi and 9\% smaller for Spark than the sum of the absolute individual gains.}
+% In this benchmark the optimizations interact with each other. The absolute
+% performance gain for combined optimizations is 3\% greater for Crunch, equal for
+% Scoobi and 9\% smaller for Spark than the sum of the absolute individual gains.
 
 \subsection{Comparison with Pig}
 \label{subsec:pig}
@@ -122,7 +115,7 @@ Scoobi and 9\% smaller for Spark than the sum of the absolute individual gains.}
   \label{fig:tpch}%\vspace{10pt}    
 \end{figure}
 \begin{figure}[t]
-    \includegraphics[width=8.6cm]{figures/pig}
+    \includegraphics[width=8.6cm]{figures/pig.png}
    \caption{Comparison between Pig, Scoobi, Spark and Crunch.}
    \label{fig:pig}%\vspace{10pt}
 \end{figure}
@@ -133,26 +126,28 @@ Scoobi and 9\% smaller for Spark than the sum of the absolute individual gains.}
    \label{fig:k-means}%\vspace{10pt}
 \end{figure}
 
+In Figure \ref{fig:pig} we com
+
 % Pig Comparison
-\todo{In Figure \ref{fig:pig} we compare the most optimal versions of benchmarks
-to equivalent Pig programs. The y axis is normalized to the Pig execution time and
-overall job time is stated above the bar. We notice that for TPCH query 12 the
-combination of fusion, code motion and field reduction outperform Pig when the
-Crunch framework is used.}
+In Figure \ref{fig:pig} we compare the hand-optimized Hadoop and Pig programs
+with our most optimized program versions.
+The y-axis is normalized to the hand-optimized Hadoop and overall
+job time is stated above the bar. 
+
+We notice that our generated Crunch programs are faster than Pig by 53\% on
+TPCH Q12 and 65\% on Wordcount. For the word count benchmark even the naive
+version is faster than Pig by 18\%, we believe this to be due to the high
+overhead of Pig's String operators. We further see that for TPCH Q12, the
+performance of our program version is almost as fast as the hand-optimized
+Hadoop version.
 
 % Spark
-\todo{For the sake of showing a comparison between the Hadoop based frameworks
-and the Spark framework we include the Spark results in the graph. We see that in all
-cases except for unoptimized TPCH query 12 it significantly outperforms the
-Hadoop based frameworks.}
-
-\todo{In the word count benchmark Crunch outperforms Pig even without any
-optimizations applied. We believe that Pig uses inefficient string processing
-primitives. With all optimizations Crunch is 73\% faster than Pig. We explain
-this by the more optimal regular expressions processing support included in the
-\tool. In regular expressions used in the benchmark Pig falls back to default
-Java regular expressions while \tool uses the optimized automaton library.}
-
+For the sake of showing a comparison between the Hadoop based frameworks
+and the Spark framework we include the Spark results in the graph. Spark
+performs better for the word count example, and performs worse than Crunch in
+the TPCH benchmark. We are uncertain about the exact causes of this behaviour.
+However, code portability of \tool can be used to select the appropriate
+execution engine for each program. 
 
 \subsection{Extensibility}
 \label{subsec:kmeans}

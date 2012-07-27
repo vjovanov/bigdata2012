@@ -28,15 +28,12 @@ which we generate all the necessary code for its use in \tool.
 
 % Explain why our algorithm is so simple
 A projection insertion optimization needs to know about the liveness of all
-fields it can possibly remove. \aos optimization in LMS provides this within a
-scope, by decomposing all control structures to multiple copies of it accessing
-each field separately. After DCE, all remaining fields are alive within that
-scope. For \tool, this is not enough, as we support operations in the data-flow
-graph, like \code{groupByKey}, for which we found no good way to decompose.
-However, we can define a liveness analysis for each operation in our programming
-model. For all operations in our programming model we identify rules on how this
-operation influences the liveness of fields. For operations that have a closure
-parameter, we apply \aos inside that closure to acquire liveness information.
+fields it can possibly remove. We define such a liveness analysis for each
+operation in our programming model, 
+we identify rules on how one operation influences the liveness of fields. For
+operations that have a closure parameter, all optimizations for structs present
+in LMS are applied, and we can analyze the code after DCE has eliminated unused
+fields.
 
 By performing this analysis on each node in reverse topological order and
 propagating the liveness information to its predecessors, we are able to perform
@@ -55,11 +52,11 @@ form a tree, and if a field in such a tree is alive, it requires liveness of all
 its ancestors. We call the path of a nested field to the root of the tree an
 \emph{access path}, and represent it using a string. The Figure
 \ref{fig:type_tree} shows the tree of nested fields for the class Tuple2[String,
-A]. The nodes describe the class of a parent's field, while the edges represent
+A]. The nodes describe the class of a parents field, while the edges represent
 the field name. The \emph{access path} to each nested field is formed by
 concatenating the edges with a separating dot. In the Figure, the access path
 for the field \code{id} in class \code{B} would be \code{_2.b.id}. For each edge
-in the data-flow graph, that our operations form, we need to compute the set of
+in the data-flow graph that our operations form, we need to compute the set of
 access paths.
 
 \begin{figure}[b]
@@ -85,11 +82,11 @@ translated into the access paths it uses. For this analysis we used following
 primitives:
 \begin{itemize}
 \item \emph{Access paths for a type}: Given a type, this primitive creates
-access paths for all the nested fields within it. In Figure \ref{fig:type_tree}
-a \code{DColl.save()} with elements of class A returns the access paths
-${id, b, b.id}$.
-\item \emph{Closure analysis}: This primitive returns a list of all access paths
-on the closure's input type.
+access paths for all the nested fields within it. This primitive can for example
+be used to create the set of access paths needed for a \code{save} operation.
+For the class A, it returns the access paths ${id, b, b.id}$.
+\item \emph{Closure analysis}: This primitive analyzes a closure and returns a
+set of all access paths relative to that closure's input type.
 \item \emph{Rewrite access paths}: Several operations have semantics which
 influence the type and therefore the access paths. For example, the \code{cache}
 operation will always have the same input and output type and is known not to

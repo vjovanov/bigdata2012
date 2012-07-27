@@ -6,10 +6,10 @@ The language we provide is the same as Scala in its basic constructs, however it
 does not support all of the functionalities. The following functionalities are
 not available:
 \begin{itemize}
-\item Projection optimization can only be applied to final immutable classes. This somewhat limits the language, but in large big data processing, data records are often not polymorphic. 
-\item Polymorphism is supported only in a limited form. The limitation is that all possible implementations need to be known at staging time and currently it prevents optimization of the polymorphic method call.
-%\item Polymorphism is supported only in a limited form. The limitation is that all possible implementations need to be known at staging time\todo{is this true?}.
-\item The whole Scala library is not available in its DSL form. This however does not limit the user since JVM methods can be used in the native form, but they can not be optimized. Due to language embedding, for using JVM methods there is no boilerplate code. 
+\item Subtype polymorphism (for user defined classes) is currently not
+supported.
+\item \tool can only apply optimizations on functions provided as a DSL module
+for LMS.
 \end{itemize}
 
 % Although it is not completely general   
@@ -18,8 +18,8 @@ not available:
 % Code compilation and generation vs interactivity
 One of the caveats of the staged DSL approach is that the program staging,
 compilation, generation and compilation of the generated code increases the
-startup time for the task. For the benchmarks we have evaluated that this
-process takes from 4 to 14 seconds. Although this can be significant, it needs
+startup time of the task. For the benchmarks we tested this process takes
+between 4 and 14 seconds. Although this can be significant, it needs
 to be only done once on a single machine so we believe it is not a limiting
 factor for batch jobs.
 
@@ -27,17 +27,20 @@ The only case where compile time becomes relevant is with back-ends that support
 interactive data analytics, like the Spark framework. Spending more than a
 couple of seconds for compilation would affect the interactivity.
 
-However, if data processing is comparable to user reaction time, optimizations
-are not needed and we could implement a version of \tool which does not generate
-the IR, but executes the original code straight away. This feature is not
+In cases for which the data processing time is comparable to the user reaction
+time, the optimizations we perform are not needed. We could implement a version
+of \tool that does not perform staging but instead executes the original code
+straight away.
+%However, if data processing time is comparable to user reaction time,
+%optimizations are not needed and we could implement a version of \tool which
+% does not generate the IR, but executes the original code straight away. 
+This feature is not
 implemented in \tool, but Kossakowski et al. \cite{greg} have done this for the
 Javascript DSL.
 
 % Job specific tuning
 Each job requires a framework specific configuration for its optimal execution
 (e.g. the number of mappers, reducers, buffer sizes etc.). Our current API does
-not include tuning of these parameters, but in the future work we want to
+not include tuning of such parameters, but in the future work we want to
 introduce a configuration part of the DSL to unify configuration of different
-backends.
-With the current programming model it is not possible to tune these parameters
-in a unified way.
+back-ends.

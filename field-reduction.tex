@@ -120,25 +120,22 @@ successors.
 \newcommand{\CA}[1]{analyze(#1)}
 \newcommand{\CN}[1]{narrow(#1)}
 \newcommand{\ALL}[1]{all(#1)}
+\newcommand{\ENDTABLELINE}{}
 
 \begin{table*} %[width=0.5\pagewidth, float=t]
     \begin{tabularx}{\textwidth}{l X c}
-Operation & Access Path Computation & Barrier \\ \hline
+Operation & Access path computation and propagation & Barrier \\ \hline
 \code{filter}	&	$P = S + \CA{f}$ & \\ \ENDTABLELINE
 \code{map}		&	$P = \CA{\CN{f}}$  & \\ \ENDTABLELINE
 \code{groupByKey}		&	$P = \ALL{I,\_1} + \REWRITE{S}{\_2.iterable.x}{\_2.x}$ & \checkmark \\ \ENDTABLELINE
-\code{join}	&	$P_L = \ALL{I,\_1} + \REWRITE{S}{\_2.\_1.x}{\_2.x}$ \newline $P_R = \ALL{I,\_1} + \REWRITE{S}{\_2.\_2.x}{\_2.x}$ & \checkmark \\	\ENDTABLELINE
-\code{reduce}	&	$P = \REWRITE{\CA{f}}{x}{\_2.iterable.x} +
+\code{join}	&	$P_L = \ALL{I,\_1} + \REWRITE{S}{\_2.\_1.x}{\_2.x}$,  $P_R =
+\ALL{I,\_1} + \REWRITE{S}{\_2.\_2.x}{\_2.x}$ & \checkmark \\	\ENDTABLELINE \code{reduce}	&	$P = \REWRITE{\CA{f}}{x}{\_2.iterable.x} +
 \REWRITE{S}{\_2.x}{\_2.iterable.x}$ & \\ \ENDTABLELINE
 % \code{reduce2}	&	$P = $ \newline $\REWRITE{CA(f)}{x}{\_2.iterable.x} + $ \newline $\REWRITE{S}{\_2.x}{\_2.iterable.x}$ & \\ \ENDTABLELINE 
 \code{cache}	&	$P = S$ & \checkmark \\ \ENDTABLELINE
 \code{save}	&	$P = \ALL{I}$ & \\ \ENDTABLELINE
 \end{tabularx} 
     \caption{Access path computation and propagation for selected operations. 
-    $P$ and $S$ are the access path sets of the predecessor and successor. 
-    $\CA{f}$ analyzes the given closure $f$, $\CN{f}$ narrows it.
-    $\REWRITE{S}{x.y}{x.z}$ rewrites the access paths in $S$ with prefix $x.y$ to have prefix $x.z$ instead.
-    $I$ is the input element type of the operation, and \ALL{I} can be used to generate the input types.
     }
     \label{tbl:analysis}
 \end{table*}
@@ -146,12 +143,12 @@ Operation & Access Path Computation & Barrier \\ \hline
 
 % make an example for map
 To analyze a \code{map} operation, we need to combine the narrow closure and the
-closure analysis primitive. \aos ensures that the output symbol of a closure is
-always a constructor invocation. We apply the narrow closure primitive to create
-a new closure, in which the new output reads from the old output only the live
-fields. LMS recognizes when a field is read from a constructor invocation in the
-same scope, and instead of generating an access for a field, it returns that
-value directly. This happens for all the fields, therefore the old constructor
+closure analysis primitive. The optimizations in LMS ensure that the output
+symbol of a closure is always a constructor invocation. We apply the narrow
+closure primitive to create a new closure, in which the new output reads from
+the old output only the live fields. LMS recognizes when a field is read from a
+constructor invocation in the same scope, and instead of generating an access
+for a field, it returns that value directly. This happens for all the fields, therefore the old constructor
 invocation will not be read anymore, and DCE will remove it. This means that the
 field values, which only it was reading, will also not be read anymore, and they
 too will be eliminated. When the closure has been cleaned of dead values, we can
@@ -159,5 +156,11 @@ analyze this new closure to get the access paths from it.
 
 Table \ref{tbl:analysis} shows how relevant operations in \tool are
 analysed and how access paths are propagated. The first column is the operation
-name, the middle column contains the rules for propagating the access paths and
-the last column shows whether we treat this operation as a barrier.
+name, and the last column shows whether we treat this operation as a barrier. 
+In the middle column we describe the rules for propagation of access paths. $P$
+and $S$ are the access path sets of the predecessor and successor.
+    $\CA{f}$ analyzes the given closure $f$, $\CN{f}$ narrows it.
+    $\REWRITE{S}{x.y}{x.z}$ rewrites the access paths in $S$ with prefix $x.y$
+    to have prefix $x.z$ instead.
+    $I$ is the input element type of the operation, and $\ALL{I}$ can be used to
+    generate the access paths.

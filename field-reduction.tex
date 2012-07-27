@@ -16,7 +16,7 @@ the framework can use compiler support.
 
 % description of supported types
 In \tool, we support this optimization for algebraic data types, more
-specifically final immutable Scala classes with a finite level of nesting. Our
+specifically, final immutable Scala classes with a finite level of nesting. Our
 approach does not require special syntax or access operators and supports method
 declarations on data types just like methods of regular Scala classes. While
 implementing our benchmarks we found this to be a reasonably expressive model
@@ -37,7 +37,7 @@ fields.
 
 By performing this analysis on each node in reverse topological order and
 propagating the liveness information to its predecessors, we are able to perform
-removal of unused fields in all operations. On a distributed program, the
+removal of unused fields in all operations. In a distributed program, the
 removal of dead fields is especially important before an operation that requires
 network transport of an object or stores it in memory. We call such an operation
 a barrier, and insert a projection which only contains the live fields before
@@ -155,7 +155,7 @@ too will be eliminated. When the closure has been cleaned of dead values, we can
 analyze this new closure to get the access paths from it.
 
 Table \ref{tbl:analysis} shows how relevant operations in \tool are
-analysed and how access paths are propagated. The first column is the operation
+analyzed and how access paths are propagated. The first column is the operation
 name, and the last column shows whether we treat this operation as a barrier. 
 In the middle column we describe the rules for propagation of access paths. $P$
 and $S$ are the access path sets of the predecessor and successor.

@@ -45,8 +45,8 @@ Crunch						        & \scode{sort(asc: Rep[Boolean])}					& \scode{DColl[T] => D
 
 Operations \code{DColl()} and \code{save} are used for loading and storing data
 to the persistent storage. \code{map, filter} and \code{flatMap} are standard
-list comprehensions for transforming the data by applying the argument function
-and can also be used with Scala \code{for} comprehensions. Operations
+methods for transforming the data by applying the argument function. Thes can
+also be used with Scala \code{for} comprehensions. Operations
 \code{groupByKey}, \code{join}, \code{cogroup}, \code{cross} and \code{reduce}
 are applicable only if the elements of \code{DColl} form a key/value tuple.
 \code{reduce} is used for general aggregation after the \code{groupByKey},
@@ -55,7 +55,7 @@ are applicable only if the elements of \code{DColl} form a key/value tuple.
 machines, and \code{cache} signals that data should be kept in cluster memory
 for faster future accesses. Two \code{DColl}s can be concatenated by the
 \code{++} operation. A DColl can be materialized on the master node by calling
-\code{materialize()}.
+\code{materialize}.
 
 Some methods accept functions as their parameters. Code within these functions
 can be either written in the \tool DSL, or by using existing functions from an

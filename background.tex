@@ -129,12 +129,13 @@ precise and unbiased information on this topic is very difficult.
 
 % modularity through scalable components abstraction.
 The modular design of LMS allows the DSL developer to arbitrarily compose the
-interface, optimizations and code generation of the DSL. Module inclusion is simply done by mixing Scala traits together. The correctness
-of the composition and missing dependencies are checked by the type system. Code
-generation for a DSL is also modular, so the effort is almost completely spent
-on domain-specific aspects. LMS provides implementations for most of
-the Scala constructs and the most common libraries. This allows to make DSLs
-that are fairly general - comparable to standard Scala.
+interface, optimizations and code generation of the DSL. Module inclusion is
+simply done by mixing Scala traits together. The correctness of the composition
+and missing dependencies are checked by the type system. Code generation for a
+DSL is also modular, so the effort is almost completely spent on domain-specific
+aspects. LMS provides implementations for most of the Scala constructs and the
+most common libraries. This allows to make DSLs that are fairly general -
+comparable to standard Scala.
 
 % LMS effects
 Unlike Scala, which does not have an effect tracking mechanism, LMS provides
@@ -155,29 +156,32 @@ the code directly in Scala. A shallow DSL embedding can be achieved this way,
 instead of building the IR.
 
 % println dsl 
-\begin{lstlisting}[name=code, caption=Example of how the DSL module is specified. This module is used for measuring a performance of a block of code and can be reused in any other Scala backed DSL. ,captionpos=b, label=lst:println_dsl, float=t]
-    // creates the println statement in the IR
-    trait PrintlnExp extends BaseExp {
-      def println[T](st: Rep[String]) =
-        reflectEffect(PrintlnNode(st)) 
-    }
-    trait PrintlnGen extends ScalaGen {
-       def emit(node: Rep[Any]) = node match {
-           case PrintlnNode(str) =>
-	      println("println("+str+")")
-       }
-    }
+\begin{lstlisting}[name=code, caption=Example of the DSL module used for
+printing strings.
+,captionpos=b, label=lst:println_dsl, float=t] 
+// creates the println statement in the IR 
+trait PrintlnExp extends BaseExp {
+  def println[T](st: Rep[String]) =
+    reflectEffect(PrintlnNode(st)) 
+  }
+}
+// code generator for println IR
+trait PrintlnGen extends ScalaGen {
+  def emit(node: Rep[Any]) = node match {
+    case PrintlnNode(str) =>
+      println("println("+str+")")
+  }
+}
 \end{lstlisting}
 
  
-In Listing \ref{lst:println_dsl}, we show a simplified version of a reusable DSL
-module for printing. In trait \code{PrintlnExp} we define how the \code{println}
-operation is linked to the intermediate representation. The \code{reflectEffect}
-method defines that the \code{profile} method has global side effects which
-signals the compiler that it can not be reordered with respect to other globally
-effectful statements or be moved across control structures. In the
-\code{PrintlnGen} trait, we define how the code for \code{println} is generated
-for Scala.
+In Listing \ref{lst:println_dsl}, we show a simplified version of a DSL module
+for printing strings. In trait \code{PrintlnExp} we define how the
+\code{println} operation builds the IR node. The \code{reflectEffect} method
+defines that the \code{println} method has global side effects which signals the
+compiler that it can not be reordered with respect to other globally effectful
+statements or be moved across control structures. In the \code{PrintlnGen}
+trait, we define how the code for \code{println} is generated for Scala.
 
 LMS has been used successfully by Brown et al. for heterogeneous parallel
 computing in project Delite \cite{brown_heterogeneous_2011, dsl11} and by
@@ -230,12 +234,20 @@ by DCE.
 
 \subsection{Distributed Batch Processing Frameworks}
 \label{subsed:big-data-frameworks}
-\tool generates Scala code for Crunch \cite{crunch}, Scoobi \cite{scoobi} and Spark \cite{spark-nsdi}. Both Crunch and Scoobi use Hadoop as the execution engine and provide an MSCR implementation as presented in \cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a rather low level interface, in which the user must provide implementation for user classes. Scoobi on the other hand is a Scala framework, which features a declarative high level interface and creates efficient serialization for user classes with only a minimal amount of help required. 
+
+\tool generates Scala code for Crunch \cite{crunch}, Scoobi \cite{scoobi} and
+Spark \cite{spark-nsdi}. Both Crunch and Scoobi use Hadoop as the execution
+engine and provide an MSCR implementation as presented in
+\cite{chambers_flumejava:_2010}. Crunch is implemented in Java and provides a
+rather low level interface, in which the user must provide implementation for
+user classes. Scoobi on the other hand is a Scala framework, which features a
+declarative high level interface and creates efficient serialization for user
+classes with only a minimal amount of help required.
 
 % explicit caching, low latency interactive data querying
 Spark is a recent execution engine which makes better use of the cluster's
 memory, explicitly allowing the user to cache data. This allows huge speedups on
 iterative jobs which can reuse the same data multiple times, unlike with Hadoop.
 It also features a declarative high level interface and has support for multiple
-serialization frameworks and it also features a shell for low latency
+serialization frameworks and it also features a REPL for low latency
 interactive data querying.

@@ -85,7 +85,7 @@ and Crunch. To prevent fusion of such loops we added the $prevent\_fusion$ bit
 to the $shape\_dep$ node. We also prevent horizontal fusion by making
 $shape\_dep$ nodes always different in comparison.
 
-After the lowering transformation we apply the loop fusion optimization from
+After the lowering transformation, we apply the loop fusion optimization from
 LMS. It iteratively fuses pairs of loops for which the consumer does not have
 the $prevent\_fusion$ bit set until a fixed point is reached. In each fusion
 iteration all other LMS optimizations are applied as well. Afterwards, in the
@@ -93,19 +93,19 @@ code generation layer for each back-end, we specify how to compile loops with
 $shape\_dep$ nodes to the most general operation (e.g. the Hadoop \code{Mapper}
 class) that the framework provides. With this approach we could also generate
 code directly for Hadoop MapReduce which would result in a single highly
-optimized loop per \code{Mapper}. However, after doing experiments we concluded
-that the gain is not significant compared to using higher level back-ends.
-Therefore, as an alternative, we used the frameworks Crunch.
+optimized loop per \code{Mapper}. However, after evaluation, we concluded
+that the gain is not significant compared to using back-end with a higher-level programming model. 
+Therefore, as an alternative, we used the Crunch framework.
 
 Unlike MapReduce based back-ends, Spark's design uses the pull data-flow model,
 implemented through iterators. When generating code for the pull data-flow
 model from the loop based model (push data-flow) we had to insert a buffer from which data
-can be pulled by an interator.
+can be pulled by an iterator.
 
 % How to link to contributions
 The overall effect of the fusion optimization is that it removes all superfluous
 method calls and data structures from the program. Additionally, fused
-operations provide more oppurtunities for other compiler optimizations.
+operations provide more opportunities for other compiler optimizations.
 This results in generated programs which are very close to the hand optimized
 versions, although they were written in a high-level declarative way. To our
 knowledge there are no distributed batch processing frameworks that achieve this

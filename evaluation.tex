@@ -164,8 +164,8 @@ We took a version of Spark's k-means \cite{spark-nsdi} application and
 ported it to \tool. This application can neither benefit from projection
 insertion nor from operation fusion. The Spark code makes use of an abstraction
 for multi-dimensional points called \code{Vector}, which uses iterators. We added
-a Vector module to \tool which uses compiler support to generate efficient loops
-instead of iterators. The implementation of the \code{Vector} module is 100
+a \code{Vector} module to \tool which uses compiler support to generate
+efficient loops instead of iterators. The implementation of the \code{Vector} module is 100
 lines long and took one man day.
 
 We evaluate the performance of our version against the original Spark version.

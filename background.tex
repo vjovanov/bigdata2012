@@ -165,6 +165,7 @@ trait PrintlnExp extends BaseExp {
     reflectEffect(PrintlnNode(st)) 
   }
 }
+
 // code generator for println IR
 trait PrintlnGen extends ScalaGen {
   def emit(node: Rep[Any]) = node match {
@@ -183,8 +184,8 @@ compiler that it can not be reordered with respect to other globally effectful
 statements or be moved across control structures. In the \code{PrintlnGen}
 trait, we define how the code for \code{println} is generated for Scala.
 
-LMS has been used successfully by Brown et al. for heterogeneous parallel
-computing in project Delite \cite{brown_heterogeneous_2011, dsl11} and by
+Until now, LMS has been successfully used by Brown et al. for heterogeneous
+parallel computing in project Delite \cite{brown_heterogeneous_2011, dsl11} and by
 Kossakowski et al. for a JavaScript DSL \cite{greg}.
 
 \subsection{LMS Optimizations}
@@ -196,8 +197,8 @@ usually lowered to a representation closer to the actual generated code. LMS
 provides a set of common optimizations for the lowered code, which are: common
 subexpression elimination (CSE), dead code elimination (DCE), constant folding
 (CF) and function inlining. LMS also applies code motion, which can either:
-\emph{i)} move independent and side effect free blocks out of hot loops
-\emph{ii)} move code segments that are used inside conditionals but defined
+\emph{i)} move independent and side effect free statements out of hot loops
+\emph{ii)} move statements that are used inside conditionals but defined
 outside closer to their use site.
 
 % structures

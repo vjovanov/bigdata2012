@@ -207,8 +207,8 @@ types to a structure of arrays (AoS $\rightarrow$ SoA), each containing only
 primitive fields. This transformation removes unnecessary constructor
 invocations and enables DCE to collect unused fields of an structure. It can be
 applied to built-in data structures like tuples as well as immutable
-user-defined types. It is similar in effect to row storage in databases and it
-gives great performance and memory footprint improvements.
+user-defined types. It is similar in effect to column-oriented storage in
+databases and it gives great performance and memory footprint improvements.
 
 % loop fusion
 LMS also provides a very general mechanism for loop fusion that uses
@@ -230,7 +230,7 @@ invocations with their bodies. In step \ref{lst:aos-soa}) the array $x$ of
 complex numbers is split into two arrays of floating points.
 In step \ref{lst:fusion-motion}) the loops are fused together, which then allows
 code motion to move the constant pattern out of the loop and move the parsing of the
-real component into the conditional. The intermediate arrays can then be removed
+real component into the conditional. The intermediate arrays are then removed
 by DCE.
 
 \subsection{Distributed Batch Processing Frameworks}

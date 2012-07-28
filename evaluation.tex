@@ -138,7 +138,7 @@ job time is stated above the bar.
 We notice that our generated Crunch programs are faster than Pig by 53\% on
 TPCH query 12 and 65\% on Wordcount. For the word count benchmark even the na\"{\i}ve
 version is faster than Pig by 18\%, we believe this to be due to the high
-overhead of Pig's String operators. We further see that for TPCH Q12, the
+overhead of Pig's String operators. We further see that for TPCH query 12, the
 performance of our program version is almost as fast as the hand-optimized
 Hadoop version.
 
@@ -158,7 +158,7 @@ To evaluate the extensibility of \tool we decided to extend it in two ways:
 with a high-performance abstraction for the k-means benchmark (Vector) and
 with a new code generator that targets the Crunch framework.
  
-\paragraph{Vector for k-means} 
+\paragraph{The Vector module for k-means} 
 % K-means language extensibility with KMeans
 We took a version of Spark's k-means \cite{spark-nsdi} application and
 ported it to \tool. This application can neither benefit from projection

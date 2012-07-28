@@ -2,11 +2,11 @@
 \label{sec:evaluation}
 \begin{figure}[t]
     \includegraphics[width=8.6cm]{figures/word-count.png}
-   \caption{Word Count benchmark.}
+   \caption{The Word count benchmark.}
    \label{fig:word-count}%\vspace{10pt}
 \end{figure}
 We evaluate the optimizations by comparing the performance of three
-programs:
+programs executed with different optimizations enabled:
 \emph{i)} a word count with prior text processing, \emph{ii)} TPCH \cite{tpch}
 query 12 and \emph{iii)} a k-means application. To evaluate the extensibility
 of the framework we introduce a new \tool module that represents
@@ -101,7 +101,7 @@ that projection insertion gives 30\% percent better performance on Crunch while
 on Spark the projection insertion improves the performance by 35\%. Overall our
 optimizations show speedups of 126\% on Crunch and 75\% on Spark over the na\"{i}ve
 version, and in this benchmark our fastest version is almost as fast as the
-hand-optimized native version (5\% slower).
+hand-optimized Hadoop version (5\% slower).
 \\
 % We believe that either network shuffle or the \code{join} operation are less
 % optimal in Spark.
@@ -136,7 +136,7 @@ The y-axis is normalized to the hand-optimized Hadoop and the overall
 job time is stated above the bar. 
 
 We notice that our generated Crunch programs are faster than Pig by 53\% on
-TPCH query 12 and 65\% on Wordcount. For the word count benchmark even the naive
+TPCH query 12 and 65\% on Wordcount. For the word count benchmark even the na\"{\i}ve
 version is faster than Pig by 18\%, we believe this to be due to the high
 overhead of Pig's String operators. We further see that for TPCH Q12, the
 performance of our program version is almost as fast as the hand-optimized
@@ -148,7 +148,8 @@ and the Spark framework we include the Spark results in the graph. Spark
 performs better for the word count example, and performs worse than Crunch in
 the TPCH benchmark. We are uncertain about the exact causes of this behaviour.
 However, code portability of \tool can be used to select the appropriate
-execution engine for each program. 
+execution engine for each program yielding even better performance improvements
+for a specific program. 
 
 \subsection{Extensibility}
 \label{subsec:kmeans}
@@ -187,7 +188,7 @@ still performs more consistently for different dimensions.
 
 % Second addition
 
-\paragraph{Crunch module}
+\paragraph{The Crunch module}
 Initially we planned to support Hadoop by generating code for the Scoobi
 \cite{scoobi} framework. We were unsatisfied by its performance however, which
 lead us to implement code generation for the Crunch framework. The code for
